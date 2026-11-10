@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { getRemember, setRemember, supabase } from '../lib/supabase'
 import { useSettings } from '../lib/settings'
 import { Logo } from '../components/Layout'
 
@@ -12,12 +12,14 @@ export function Login({ recovery = false, onRecovered }: { recovery?: boolean; o
   const [password, setPassword] = useState('')
   const [msg, setMsg] = useState<{ kind: 'error' | 'ok'; text: string } | null>(null)
   const [busy, setBusy] = useState(false)
+  const [remember, setRememberState] = useState(getRemember)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setBusy(true)
     setMsg(null)
     if (mode === 'login') {
+      setRemember(remember)
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) setMsg({ kind: 'error', text: t.login_error })
     } else if (mode === 'forgot') {
@@ -63,6 +65,13 @@ export function Login({ recovery = false, onRecovered }: { recovery?: boolean; o
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+            </label>
+          )}
+
+          {mode === 'login' && (
+            <label className="flex cursor-pointer items-center gap-2.5 pt-1 text-sm select-none">
+              <input type="checkbox" className="h-4 w-4 accent-[var(--accent)]" checked={remember} onChange={(e) => setRememberState(e.target.checked)} />
+              {t.remember_me}
             </label>
           )}
 

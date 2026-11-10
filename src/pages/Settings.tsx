@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Download, Plus, Trash2 } from 'lucide-react'
+import { isIOS, useInstallPrompt } from '../lib/install'
 import { useData } from '../lib/data'
 import { useSettings } from '../lib/settings'
 import { AREA_COLORS, type Area } from '../lib/types'
@@ -77,11 +78,33 @@ export function Settings({ email }: { email: string }) {
           </div>
         </Card>
 
+        <InstallCard />
+
         <Card title={t.account}>
           <p className="text-sm text-muted">{email}</p>
         </Card>
       </div>
     </>
+  )
+}
+
+function InstallCard() {
+  const { t } = useSettings()
+  const { canPrompt, installed, install } = useInstallPrompt()
+  return (
+    <Card title={t.install_app} hint={installed ? t.install_done : t.install_hint}>
+      {!installed && (
+        <div className="space-y-3">
+          {canPrompt && (
+            <button className="btn btn-primary" onClick={install}>
+              <Download size={18} />
+              {t.install_app}
+            </button>
+          )}
+          <p className="text-sm text-muted">{isIOS() ? t.install_ios : t.install_manual}</p>
+        </div>
+      )}
+    </Card>
   )
 }
 

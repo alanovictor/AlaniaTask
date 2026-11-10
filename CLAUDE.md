@@ -10,7 +10,7 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 - Frontend estático: Vite + React + TypeScript, publicado no GitHub Pages por GitHub Actions.
   - Roteamento com `HashRouter` (GitHub Pages não tem fallback de SPA).
   - PWA com `vite-plugin-pwa` (manifest, service worker, instalável).
-- Supabase: Postgres, Auth (só login com Google), Storage (anexos), Edge Functions + `pg_cron` (notificações e recorrências).
+- Supabase: Postgres, Auth (login com e-mail e senha; sem Google — o app não tem nenhum vínculo com Google), Storage (anexos), Edge Functions + `pg_cron` (notificações e recorrências).
 - Segredos: nenhuma chave secreta no frontend nem no repositório. Só a URL e a chave pública (anon) do Supabase vão para o front. A proteção dos dados é feita por RLS em todas as tabelas (`user_id = auth.uid()`).
 - Variáveis em `.env` (fora do Git); `.env.example` documenta os nomes.
 
@@ -41,7 +41,8 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 ### Doing (home)
 - Tarefas de hoje: as escolhidas manualmente (a partir de Tasks) e as com data de hoje.
 - Virou o dia sem concluir nem remarcar: a tarefa continua no Doing do dia seguinte com aviso de **atrasada**.
-  (Implementação sugerida: calcular na consulta — data < hoje e status não finalizado = atrasada; não precisa de job para "mover".)
+  (Implementado: a tarefa tem um único campo `date`. "Adicionar ao Doing" = date de hoje; "Tirar do Doing" = limpa a data.
+  Doing = status aberto e date <= hoje; atrasada = date < hoje. Calculado no app, sem job.)
 - A tarefa sai do Doing ao chegar em Done ou Validated.
 
 ### Tasks

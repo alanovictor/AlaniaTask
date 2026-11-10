@@ -29,7 +29,7 @@ export function Doing() {
 
   return (
     <>
-      <PageHeader title={t.doing_title} subtitle={<span className="capitalize">{dateTitle}</span>} />
+      <PageHeader title={t.doing_title} subtitle={<span className="inline-block first-letter:uppercase">{dateTitle}</span>} />
 
       {total > 0 && (
         <div className="mb-6 rounded-2xl border border-line bg-surface p-4">

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ListTodo, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useData } from '../lib/data'
 import { addDays, isOpen, isOverdue, today } from '../lib/dates'
@@ -27,7 +28,7 @@ const KEY = 'alania.taskFilters'
 
 function load(): Filters {
   try {
-    return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) ?? '{}'), q: '' }
+    return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) ?? '{}'), q: '', area: '' }
   } catch {
     return DEFAULT
   }
@@ -37,18 +38,25 @@ export function Tasks() {
   const { t } = useSettings()
   const { tasks, areas, areaById, tagById, patchTask } = useData()
   const { openEdit } = useEditor()
-  const [f, setF] = useState<Filters>(load)
+  const [params, setParams] = useSearchParams()
+  const [base, setF] = useState<Filters>(load)
+  // a área vem da URL (links do menu lateral)
+  const f: Filters = { ...base, area: params.get('area') ?? '' }
+  const currentArea = f.area && f.area !== 'none' ? areaById.get(f.area) : undefined
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     try {
-      localStorage.setItem(KEY, JSON.stringify(f))
+      localStorage.setItem(KEY, JSON.stringify({ ...base, area: '' }))
     } catch {
       /* ignora */
     }
-  }, [f])
+  }, [base])
 
-  const set = <K extends keyof Filters>(k: K, v: Filters[K]) => setF((p) => ({ ...p, [k]: v }))
+  const set = <K extends keyof Filters>(k: K, v: Filters[K]) => {
+    if (k === 'area') setParams(v ? { area: String(v) } : {}, { replace: true })
+    else setF((p) => ({ ...p, [k]: v }))
+  }
   const activeCount = (f.area ? 1 : 0) + (f.priority ? 1 : 0) + (f.status !== DEFAULT.status ? 1 : 0) + (f.date !== 'any' ? 1 : 0)
 
   const list = useMemo(() => {
@@ -84,7 +92,7 @@ export function Tasks() {
       return b.created_at.localeCompare(a.created_at)
     })
     return out
-  }, [tasks, f, tagById])
+  }, [tasks, base, f.area, tagById]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const filterControls = (
     <>
@@ -138,7 +146,15 @@ export function Tasks() {
 
   return (
     <>
-      <PageHeader title={t.tasks_title} subtitle={t.count_tasks(list.length)} />
+      <PageHeader
+        title={currentArea ? currentArea.name : t.tasks_title}
+        subtitle={
+          <span className="inline-flex items-center gap-2">
+            {currentArea && <span className="h-2.5 w-2.5 rounded-[4px]" style={{ background: currentArea.color }} />}
+            {t.count_tasks(list.length)}
+          </span>
+        }
+      />
 
       <div className="mb-5 space-y-3">
         <div className="flex gap-2">
@@ -153,7 +169,10 @@ export function Tasks() {
         </div>
         <div className={`grid grid-cols-2 gap-2 lg:grid lg:grid-cols-5 ${showFilters ? '' : 'hidden'}`}>{filterControls}</div>
         {activeCount > 0 && (
-          <button className="inline-flex items-center gap-1 text-xs text-muted hover:text-fg" onClick={() => setF({ ...DEFAULT, q: f.q, sort: f.sort })}>
+          <button className="inline-flex items-center gap-1 text-xs text-muted hover:text-fg" onClick={() => {
+              setF({ ...DEFAULT, q: f.q, sort: f.sort })
+              setParams({}, { replace: true })
+            }}>
             <X size={14} /> {t.clear_filters}
           </button>
         )}

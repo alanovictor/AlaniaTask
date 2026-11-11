@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { useSettings } from '../lib/settings'
-import { PRIORITY_COLOR, STATUS_COLOR, STATUSES, type Priority, type Status } from '../lib/types'
+import { AREA_COLORS, PRIORITY_COLOR, STATUS_COLOR, STATUSES, type Priority, type Status } from '../lib/types'
 
 export function PriorityFlag({ p, withLabel = false }: { p: Priority; withLabel?: boolean }) {
   const { t } = useSettings()
@@ -136,6 +136,23 @@ export function Segmented<T extends string>({ value, options, onChange }: { valu
           </button>
         )
       })}
+    </div>
+  )
+}
+
+export function ColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {AREA_COLORS.map((c) => (
+        <button
+          key={c}
+          type="button"
+          onClick={() => onChange(c)}
+          className={`h-7 w-7 rounded-full transition-transform ${value === c ? 'scale-110 ring-2 ring-fg ring-offset-2 ring-offset-surface' : ''}`}
+          style={{ background: c }}
+          aria-label={c}
+        />
+      ))}
     </div>
   )
 }

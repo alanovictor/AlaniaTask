@@ -5,7 +5,7 @@ import { useData } from '../lib/data'
 import { useSettings } from '../lib/settings'
 import { AREA_COLORS, type Area } from '../lib/types'
 import { PageHeader } from '../components/Layout'
-import { Segmented } from '../components/ui'
+import { ColorPicker, Segmented } from '../components/ui'
 
 export function Settings({ email }: { email: string }) {
   const { t, theme, setTheme, lang, setLang } = useSettings()
@@ -115,23 +115,6 @@ function Card({ title, hint, children }: { title: string; hint?: string; childre
       {hint && <p className="mt-0.5 text-sm text-muted">{hint}</p>}
       <div className="mt-4">{children}</div>
     </section>
-  )
-}
-
-function ColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {AREA_COLORS.map((c) => (
-        <button
-          key={c}
-          type="button"
-          onClick={() => onChange(c)}
-          className={`h-7 w-7 rounded-full transition-transform ${value === c ? 'scale-110 ring-2 ring-fg ring-offset-2 ring-offset-surface' : ''}`}
-          style={{ background: c }}
-          aria-label={c}
-        />
-      ))}
-    </div>
   )
 }
 

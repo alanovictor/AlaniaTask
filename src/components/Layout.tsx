@@ -1,11 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Sun, ListTodo, CalendarRange, ShieldCheck, Repeat, Settings, LogOut, PanelLeftClose, PanelLeftOpen, Menu, Plus, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useSettings } from '../lib/settings'
 import { useData } from '../lib/data'
-import { isInDoing } from '../lib/dates'
+import { isInDoing, isOpen } from '../lib/dates'
 import { useEditor } from './TaskEditor'
+import { NewAreaModal } from './AreaModal'
 
 const COLLAPSE_KEY = 'alania.sidebarCollapsed'
 
@@ -20,7 +21,7 @@ export function Logo({ size = 32 }: { size?: number }) {
 
 export function Layout({ children }: { children: ReactNode }) {
   const { t } = useSettings()
-  const { tasks } = useData()
+  const { tasks, areas } = useData()
   const { openNew } = useEditor()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(() => {
@@ -31,8 +32,10 @@ export function Layout({ children }: { children: ReactNode }) {
     }
   })
   const [drawer, setDrawer] = useState(false)
+  const [newArea, setNewArea] = useState(false)
+  const activeArea = new URLSearchParams(location.search).get('area')
 
-  useEffect(() => setDrawer(false), [location.pathname])
+  useEffect(() => setDrawer(false), [location.pathname, location.search])
   useEffect(() => {
     try {
       localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0')
@@ -74,7 +77,7 @@ export function Layout({ children }: { children: ReactNode }) {
           title={isCollapsed ? label : undefined}
           className={({ isActive }) =>
             `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-              isActive ? 'bg-accent-soft text-accent' : 'text-muted hover:bg-surface-2 hover:text-fg'
+              isActive && !(to === '/tasks' && activeArea) ? 'bg-accent-soft text-accent' : 'text-muted hover:bg-surface-2 hover:text-fg'
             } ${isCollapsed ? 'justify-center px-0' : ''}`
           }
         >
@@ -83,6 +86,42 @@ export function Layout({ children }: { children: ReactNode }) {
           {!isCollapsed && !!badge && <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-on-accent">{badge}</span>}
         </NavLink>
       ))}
+
+      {!isCollapsed && (
+        <div className="mt-5 flex min-h-0 flex-col">
+          <div className="mb-1 flex items-center justify-between px-3">
+            <span className="text-[11px] font-semibold tracking-wider text-muted uppercase">{t.areas}</span>
+            <button onClick={() => setNewArea(true)} className="-mr-1.5 rounded-lg p-1 text-muted hover:bg-surface-2 hover:text-fg" title={t.new_area} aria-label={t.new_area}>
+              <Plus size={16} />
+            </button>
+          </div>
+          <div className="scrollbar-thin -mx-1 overflow-y-auto px-1">
+            {areas.length === 0 ? (
+              <button onClick={() => setNewArea(true)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-muted hover:bg-surface-2 hover:text-fg">
+                <Plus size={16} />
+                {t.new_area}
+              </button>
+            ) : (
+              areas.map((a) => {
+                const active = location.pathname === '/tasks' && activeArea === a.id
+                const count = tasks.filter((x) => x.area_id === a.id && isOpen(x)).length
+                return (
+                  <Link
+                    key={a.id}
+                    to={`/tasks?area=${a.id}`}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors ${active ? 'bg-accent-soft text-fg' : 'text-muted hover:bg-surface-2 hover:text-fg'}`}
+                  >
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-[4px]" style={{ background: a.color }} />
+                    <span className="flex-1 truncate">{a.name}</span>
+                    {count > 0 && <span className="text-xs text-muted">{count}</span>}
+                  </Link>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex-1" />
       <NavLink
         to="/settings"
@@ -164,6 +203,8 @@ export function Layout({ children }: { children: ReactNode }) {
       >
         <Plus size={26} />
       </button>
+
+      {newArea && <NewAreaModal onClose={() => setNewArea(false)} />}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Sun, ListTodo, CalendarRange, ShieldCheck, Repeat, Settings, LogOut, PanelLeftClose, PanelLeftOpen, Menu, Plus, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -36,6 +36,64 @@ export function Layout({ children }: { children: ReactNode }) {
   const activeArea = new URLSearchParams(location.search).get('area')
 
   useEffect(() => setDrawer(false), [location.pathname, location.search])
+
+  // Gesto no celular: arrastar da borda esquerda abre o menu; arrastar para a esquerda fecha.
+  const asideRef = useRef<HTMLElement>(null)
+  const [dragX, setDragX] = useState<number | null>(null)
+  const drawerRef = useRef(drawer)
+  drawerRef.current = drawer
+  const drawerWidth = () => asideRef.current?.offsetWidth || Math.min(288, window.innerWidth * 0.85)
+
+  useEffect(() => {
+    const EDGE = 28
+    let g: { mode: 'open' | 'close'; x0: number; y0: number; locked: boolean; x: number; t0: number } | null = null
+
+    const onStart = (e: TouchEvent) => {
+      if (window.innerWidth >= 1024 || e.touches.length !== 1) return
+      const { clientX: x, clientY: y } = e.touches[0]
+      if (drawerRef.current) g = { mode: 'close', x0: x, y0: y, locked: false, x: 0, t0: Date.now() }
+      else if (x <= EDGE) g = { mode: 'open', x0: x, y0: y, locked: false, x: -drawerWidth(), t0: Date.now() }
+    }
+    const onMove = (e: TouchEvent) => {
+      if (!g) return
+      const { clientX: x, clientY: y } = e.touches[0]
+      const dx = x - g.x0
+      const dy = y - g.y0
+      if (!g.locked) {
+        if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) {
+          g = null // rolagem vertical: ignora
+          return
+        }
+        if (Math.abs(dx) < 8) return
+        g.locked = true
+      }
+      const w = drawerWidth()
+      g.x = Math.max(-w, Math.min(0, g.mode === 'open' ? -w + dx : dx))
+      setDragX(g.x)
+    }
+    const onEnd = () => {
+      if (!g) return
+      if (g.locked) {
+        const w = drawerWidth()
+        const fast = Date.now() - g.t0 < 250
+        if (g.mode === 'open') setDrawer(g.x > -w * 0.6 || (fast && g.x > -w * 0.9))
+        else setDrawer(!(g.x < -w * 0.3 || (fast && g.x < -w * 0.1)))
+      }
+      g = null
+      setDragX(null)
+    }
+
+    window.addEventListener('touchstart', onStart, { passive: true })
+    window.addEventListener('touchmove', onMove, { passive: true })
+    window.addEventListener('touchend', onEnd)
+    window.addEventListener('touchcancel', onEnd)
+    return () => {
+      window.removeEventListener('touchstart', onStart)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', onEnd)
+      window.removeEventListener('touchcancel', onEnd)
+    }
+  }, [])
   useEffect(() => {
     try {
       localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0')
@@ -165,9 +223,25 @@ export function Layout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Gaveta mobile */}
-      {drawer && (
-        <div className="fixed inset-0 z-40 bg-black/55 lg:hidden" onClick={() => setDrawer(false)}>
-          <aside className="flex h-full w-72 max-w-[85vw] flex-col border-r border-line bg-surface p-3 pt-[max(0.75rem,env(safe-area-inset-top))]" onClick={(e) => e.stopPropagation()}>
+      {(() => {
+        // posição da gaveta: 0 = aberta, -largura = fechada; durante o gesto segue o dedo
+        const w = drawerWidth()
+        const x = dragX ?? (drawer ? 0 : -w)
+        const progress = 1 + x / w
+        const visible = drawer || dragX !== null
+        return (
+          <div
+            className={`fixed inset-0 z-40 lg:hidden ${visible ? '' : 'pointer-events-none'}`}
+            style={{ background: `rgba(0,0,0,${0.55 * progress})`, transition: dragX === null ? 'background 0.22s ease' : 'none' }}
+            onClick={() => setDrawer(false)}
+            aria-hidden={!visible}
+          >
+          <aside
+            ref={asideRef}
+            className="flex h-full w-72 max-w-[85vw] flex-col border-r border-line bg-surface p-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-2xl"
+            style={{ transform: `translateX(${x}px)`, transition: dragX === null ? 'transform 0.22s ease' : 'none', visibility: visible || progress > 0 ? 'visible' : 'hidden' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="mb-6 flex items-center justify-between px-1.5 pt-1">
               <div className="flex items-center gap-2.5">
                 <Logo />
@@ -179,8 +253,9 @@ export function Layout({ children }: { children: ReactNode }) {
             </div>
             {nav(false)}
           </aside>
-        </div>
-      )}
+          </div>
+        )
+      })()}
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topo mobile */}

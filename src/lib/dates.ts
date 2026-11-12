@@ -50,3 +50,28 @@ export function startOfWeek(iso: string): string {
   const dow = (date.getDay() + 6) % 7
   return addDays(iso, -dow)
 }
+
+export function startOfMonth(iso: string): string {
+  return iso.slice(0, 8) + '01'
+}
+
+export function addMonths(iso: string, n: number): string {
+  const [y, m] = iso.split('-').map(Number)
+  return toISODate(new Date(y, m - 1 + n, 1))
+}
+
+/** Lista de datas ISO de `from` até `to` (inclusive). */
+export function dateRange(from: string, to: string): string[] {
+  const out: string[] = []
+  for (let d = from; d <= to; d = addDays(d, 1)) out.push(d)
+  return out
+}
+
+/** Grade do mês: semanas completas (seg–dom) que cobrem o mês de `iso`. */
+export function monthGrid(iso: string): string[] {
+  const first = startOfMonth(iso)
+  const last = addDays(addMonths(first, 1), -1)
+  const start = startOfWeek(first)
+  const end = addDays(startOfWeek(last), 6)
+  return dateRange(start, end)
+}

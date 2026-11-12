@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
-import { CalendarRange, Repeat, ShieldCheck } from 'lucide-react'
+import { FolderKanban, Repeat, ShieldCheck } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { SettingsProvider, useSettings } from './lib/settings'
 import { DataProvider, useData } from './lib/data'
@@ -12,6 +12,7 @@ import { Doing } from './pages/Doing'
 import { Tasks } from './pages/Tasks'
 import { Settings } from './pages/Settings'
 import { Soon } from './pages/Soon'
+import { Planning } from './pages/Planning'
 
 export default function App() {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
@@ -78,7 +79,8 @@ function Shell({ email }: { email: string }) {
       <Routes>
         <Route path="/" element={<Doing />} />
         <Route path="/tasks" element={<Tasks />} />
-        <Route path="/planning" element={<Soon title={t.nav_planning} icon={<CalendarRange size={28} />} />} />
+        <Route path="/projects" element={<Soon title={t.nav_projects} icon={<FolderKanban size={28} />} />} />
+        <Route path="/planning" element={<Planning />} />
         <Route path="/validation" element={<Soon title={t.nav_validation} icon={<ShieldCheck size={28} />} />} />
         <Route path="/recurring" element={<Soon title={t.nav_recurring} icon={<Repeat size={28} />} />} />
         <Route path="/settings" element={<Settings email={email} />} />

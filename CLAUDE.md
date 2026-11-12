@@ -22,6 +22,7 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 - Menu lateral expansível (no PC recolhe para ícones; no celular vira gaveta). Ordem:
   1. **Doing** (tela inicial)
   2. **Tasks**
+  2b. **Projetos / Projects** (vincular tarefas a projetos — ainda "Em breve"; definir com o usuário)
   3. **Planning**
   4. **Validation**
   5. **Recorrentes / Recurring**
@@ -72,9 +73,11 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 - Backup semanal dos dados.
 - Ping periódico para o projeto gratuito do Supabase não pausar (pausa após 7 dias sem uso).
 
+Nomes em português no app: Hoje (Doing), Tarefas, Projetos, Planejamento, Validação, Recorrentes; status A fazer, Em andamento, Aguardando, Concluída, Validada.
+
 ## Ordem de construção
-1. Projeto base, login com Google, áreas, CRUD de tarefas, seção Tasks e Doing.
-2. Planning (calendário semana/mês, drag and drop).
+1. Projeto base, login (e-mail e senha), áreas, CRUD de tarefas, seção Tasks e Doing. ✅ feito (+ PWA instalável)
+2. Planning (calendário semana/mês, drag and drop). ✅ feito
 3. Validation.
 4. Recorrentes.
 5. PWA instalável + notificações push.

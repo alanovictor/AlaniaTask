@@ -149,7 +149,7 @@ function TaskEditorModal({ initial, onClose }: { initial: TaskDraft; onClose: ()
           <Segmented
             value={d.priority}
             onChange={(v) => set('priority', v)}
-            options={PRIORITIES.map((p) => ({ value: p, label: t[`p_${p}`], color: PRIORITY_COLOR[p] }))}
+            options={[...PRIORITIES].reverse().map((p) => ({ value: p, label: t[`p_${p}`], color: PRIORITY_COLOR[p] }))}
           />
         </Field>
 

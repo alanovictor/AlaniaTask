@@ -121,8 +121,8 @@ export function Layout({ children }: { children: ReactNode }) {
   const items = [
     { to: '/', label: t.nav_doing, icon: Sun, badge: doingCount },
     { to: '/tasks', label: t.nav_tasks, icon: ListTodo },
-    { to: '/projects', label: t.nav_projects, icon: FolderKanban },
     { to: '/planning', label: t.nav_planning, icon: CalendarRange },
+    { to: '/projects', label: t.nav_projects, icon: FolderKanban },
     { to: '/validation', label: t.nav_validation, icon: ShieldCheck, badge: validationCount },
     { to: '/recurring', label: t.nav_recurring, icon: Repeat },
   ]

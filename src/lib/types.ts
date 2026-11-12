@@ -55,6 +55,7 @@ export interface Task {
   date: string | null
   time: string | null
   requires_validation: boolean
+  validation_of: string | null
   completed_at: string | null
   position: number
   created_at: string

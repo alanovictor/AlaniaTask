@@ -57,7 +57,8 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 ### Validation
 - Quando uma tarefa com "Requer validação" chega em Done, o app cria automaticamente uma tarefa de validação **sem data**, ligada à original.
 - A seção lista essas tarefas até o usuário definir a data; depois seguem o fluxo normal (Planning, Doing).
-- Quando a tarefa de validação chega em Done, a original passa para Validated (a confirmar com o usuário).
+- Quando a tarefa de validação chega em Done, a original passa para Validated. Reabrir a validação volta a original para Done; reabrir a original descarta a validação pendente.
+- Implementado por gatilho no banco (supabase/migrations/0002_validation.sql), coluna tasks.validation_of.
 
 ### Recorrentes
 - Cadastro completo: diária, dias da semana escolhidos, semanal, quinzenal, mensal (dia do mês ou "Nª dia-da-semana"), anual, a cada X dias/semanas/meses; data de início; fim (nunca, em data, após N vezes); horário opcional.
@@ -78,7 +79,7 @@ Nomes em português no app: Hoje (Doing), Tarefas, Projetos, Planejamento, Valid
 ## Ordem de construção
 1. Projeto base, login (e-mail e senha), áreas, CRUD de tarefas, seção Tasks e Doing. ✅ feito (+ PWA instalável)
 2. Planning (calendário semana/mês, drag and drop). ✅ feito
-3. Validation.
+3. Validation. ✅ feito
 4. Recorrentes.
 5. PWA instalável + notificações push.
 6. Backup e ping via GitHub Actions.

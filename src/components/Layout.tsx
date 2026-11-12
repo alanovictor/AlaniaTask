@@ -116,13 +116,14 @@ export function Layout({ children }: { children: ReactNode }) {
   }, [openNew])
 
   const doingCount = tasks.filter((x) => isInDoing(x)).length
+  const validationCount = tasks.filter((x) => x.validation_of && isOpen(x) && !x.date).length
 
   const items = [
     { to: '/', label: t.nav_doing, icon: Sun, badge: doingCount },
     { to: '/tasks', label: t.nav_tasks, icon: ListTodo },
     { to: '/projects', label: t.nav_projects, icon: FolderKanban },
     { to: '/planning', label: t.nav_planning, icon: CalendarRange },
-    { to: '/validation', label: t.nav_validation, icon: ShieldCheck },
+    { to: '/validation', label: t.nav_validation, icon: ShieldCheck, badge: validationCount },
     { to: '/recurring', label: t.nav_recurring, icon: Repeat },
   ]
 

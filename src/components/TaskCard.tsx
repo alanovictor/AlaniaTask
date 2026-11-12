@@ -1,4 +1,4 @@
-import { Check, CalendarDays, Clock, ListChecks, Sun, SunDim, AlertTriangle } from 'lucide-react'
+import { Check, CalendarDays, Clock, ListChecks, Sun, SunDim, AlertTriangle, ShieldCheck } from 'lucide-react'
 import { useData } from '../lib/data'
 import { daysLate, formatDate, isInDoing, isOverdue, today } from '../lib/dates'
 import { useSettings } from '../lib/settings'
@@ -56,6 +56,25 @@ export function OverdueBadge({ task }: { task: Task }) {
   )
 }
 
+/** Selo para tarefas de validação, ou ícone discreto quando a tarefa requer validação. */
+export function ValidationBadge({ task }: { task: Task }) {
+  const { t } = useSettings()
+  if (task.validation_of)
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#12a594]/15 px-2 py-0.5 text-xs font-semibold text-[#12a594]">
+        <ShieldCheck size={12} />
+        {t.validation_badge}
+      </span>
+    )
+  if (task.requires_validation)
+    return (
+      <span className="inline-flex text-[#12a594]" title={t.needs_validation} aria-label={t.needs_validation}>
+        <ShieldCheck size={14} />
+      </span>
+    )
+  return null
+}
+
 export function DoingToggle({ task, compact = false }: { task: Task; compact?: boolean }) {
   const { t } = useSettings()
   const { patchTask } = useData()
@@ -102,6 +121,7 @@ export function TaskCard({ task, showDoingToggle = false }: { task: Task; showDo
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <StatusSelect value={task.status} onChange={(status) => patchTask(task.id, { status }).catch(() => {})} />
           <OverdueBadge task={task} />
+          <ValidationBadge task={task} />
           {area && <AreaChip name={area.name} color={area.color} />}
           <DateLabel task={task} />
           {task.subtasks.length > 0 && (

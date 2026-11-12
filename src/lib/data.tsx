@@ -163,6 +163,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         throw error
       }
       setTasks((prev) => prev.map((t) => (t.id === id ? sortSubtasks(data as Task) : t)))
+      // mudança de status pode criar/alterar tarefas de validação no banco
+      if (patch.status) await reload()
     },
     [reload],
   )

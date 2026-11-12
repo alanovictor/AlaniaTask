@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState, type DragEvent } from 'react'
-import { ChevronLeft, ChevronRight, Inbox, Plus, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Inbox, Plus, AlertTriangle, Repeat } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { nextOccurrences, type Recurrence } from '../lib/recurrence'
 import { useData } from '../lib/data'
 import { addDays, addMonths, formatDate, isOpen, isOverdue, monthGrid, startOfMonth, startOfWeek, today } from '../lib/dates'
 import { useSettings } from '../lib/settings'
@@ -18,7 +20,8 @@ const byTimeThenPriority = (a: Task, b: Task) =>
 
 export function Planning() {
   const { t, locale } = useSettings()
-  const { tasks, areaById, patchTask } = useData()
+  const { tasks, recurrences, areaById, patchTask } = useData()
+  const navigate = useNavigate()
   const { openNew } = useEditor()
   const ref = today()
 
@@ -56,6 +59,38 @@ export function Planning() {
     for (const list of m.values()) list.sort((a, b) => Number(!isOpen(a)) - Number(!isOpen(b)) || byTimeThenPriority(a, b))
     return m
   }, [tasks])
+
+  // prévia das recorrentes nos dias futuros (ainda não viraram tarefa)
+  const ghosts = useMemo(() => {
+    const m = new Map<string, Recurrence[]>()
+    const end = days[days.length - 1]
+    const tomorrow = addDays(ref, 1)
+    for (const rec of recurrences) {
+      if (!rec.active) continue
+      const from = rec.last_generated && rec.last_generated >= tomorrow ? addDays(rec.last_generated, 1) : tomorrow
+      if (from > end) continue
+      for (const d of nextOccurrences(rec, from, 62, 430)) {
+        if (d > end) break
+        m.set(d, [...(m.get(d) ?? []), rec])
+      }
+    }
+    return m
+  }, [recurrences, days, ref])
+
+  const ghostChip = (rec: Recurrence, compact = false) => (
+    <button
+      key={rec.id}
+      onClick={() => navigate('/recurring')}
+      title={rec.title}
+      className={`flex w-full items-center gap-1.5 rounded-lg border border-dashed border-line text-left text-muted transition-colors hover:border-accent/50 hover:text-fg ${compact ? 'px-2 py-1 text-[11px]' : 'px-2.5 py-1.5 text-xs'}`}
+    >
+      <Repeat size={12} className="shrink-0 text-accent" />
+      <span className="truncate">
+        {rec.time && <span className="mr-1 tabular-nums">{rec.time.slice(0, 5)}</span>}
+        {rec.title}
+      </span>
+    </button>
+  )
 
   const unscheduled = tasks.filter((x) => isOpen(x) && !x.date).sort((a, b) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] || b.created_at.localeCompare(a.created_at))
   const overdue = tasks.filter((x) => isOverdue(x, ref)).sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''))
@@ -219,7 +254,10 @@ export function Planning() {
             className={`flex min-h-[420px] flex-col gap-2 rounded-2xl border p-2 transition-colors ${dropTarget === d ? 'border-accent bg-accent-soft' : d === ref ? 'border-accent/40 bg-surface' : 'border-line bg-surface/60'}`}
           >
             {dayHeader(d)}
-            <div className="flex flex-col gap-1.5">{(byDate.get(d) ?? []).map((x) => chip(x))}</div>
+            <div className="flex flex-col gap-1.5">
+              {(byDate.get(d) ?? []).map((x) => chip(x))}
+              {(ghosts.get(d) ?? []).map((g) => ghostChip(g))}
+            </div>
           </div>
         ))}
       </div>
@@ -227,10 +265,18 @@ export function Planning() {
       <div className="space-y-3 lg:hidden">
         {days.map((d) => {
           const list = byDate.get(d) ?? []
+          const gl = ghosts.get(d) ?? []
           return (
             <div key={d} className={`rounded-2xl border p-3 ${d === ref ? 'border-accent/40 bg-surface' : 'border-line bg-surface/60'}`}>
               {dayHeader(d, true)}
-              {list.length > 0 ? <div className="mt-2 space-y-1.5">{list.map((x) => chip(x))}</div> : <p className="mt-1 text-xs text-muted">{t.no_tasks_day}</p>}
+              {list.length + gl.length > 0 ? (
+                <div className="mt-2 space-y-1.5">
+                  {list.map((x) => chip(x))}
+                  {gl.map((g) => ghostChip(g))}
+                </div>
+              ) : (
+                <p className="mt-1 text-xs text-muted">{t.no_tasks_day}</p>
+              )}
             </div>
           )
         })}
@@ -241,6 +287,7 @@ export function Planning() {
   const month = startOfMonth(anchor).slice(0, 7)
   const weekdayLabels = days.slice(0, 7).map((d) => formatDate(d, locale, { weekday: 'short' }).replace('.', ''))
   const selectedList = byDate.get(selectedDay) ?? []
+  const selectedGhosts = ghosts.get(selectedDay) ?? []
 
   const monthView = (
     <>
@@ -254,6 +301,7 @@ export function Planning() {
       <div className="grid grid-cols-7 gap-1 lg:gap-2">
         {days.map((d) => {
           const list = byDate.get(d) ?? []
+          const gl = ghosts.get(d) ?? []
           const inMonth = d.startsWith(month)
           const isToday = d === ref
           const selected = d === selectedDay
@@ -270,6 +318,9 @@ export function Planning() {
               <div className="flex flex-col items-center lg:hidden">
                 <span className={`grid h-6 min-w-6 place-items-center rounded-full text-sm font-semibold tabular-nums ${isToday ? 'bg-accent px-1 text-on-accent' : ''}`}>{Number(d.slice(8))}</span>
                 <div className="mt-1 flex flex-wrap justify-center gap-0.5">
+                  {gl.slice(0, 2).map((g) => (
+                    <span key={g.id} className="h-1.5 w-1.5 rounded-full border border-dashed border-muted" />
+                  ))}
                   {list.slice(0, 4).map((x) => (
                     <span key={x.id} className={`h-1.5 w-1.5 rounded-full ${isOpen(x) ? '' : 'opacity-40'}`} style={{ background: PRIORITY_COLOR[x.priority] }} />
                   ))}
@@ -279,7 +330,8 @@ export function Planning() {
               <div className="hidden lg:block">{dayHeader(d)}</div>
               <div className="mt-1 hidden flex-col gap-1 lg:flex">
                 {list.slice(0, 3).map((x) => chip(x, true))}
-                {list.length > 3 && (
+                {gl.slice(0, Math.max(0, 3 - list.length)).map((g) => ghostChip(g, true))}
+                {list.length + gl.length > 3 && (
                   <button
                     onClick={() => {
                       setView('week')
@@ -287,7 +339,7 @@ export function Planning() {
                     }}
                     className="px-1 text-left text-[11px] font-medium text-muted hover:text-fg"
                   >
-                    {t.more_n(list.length - 3)}
+                    {t.more_n(list.length + gl.length - 3)}
                   </button>
                 )}
               </div>
@@ -303,7 +355,14 @@ export function Planning() {
             <Plus size={18} />
           </button>
         </div>
-        {selectedList.length ? <div className="space-y-1.5">{selectedList.map((x) => chip(x))}</div> : <p className="text-sm text-muted">{t.no_tasks_day}</p>}
+        {selectedList.length + selectedGhosts.length ? (
+          <div className="space-y-1.5">
+            {selectedList.map((x) => chip(x))}
+            {selectedGhosts.map((g) => ghostChip(g))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted">{t.no_tasks_day}</p>
+        )}
       </div>
     </>
   )

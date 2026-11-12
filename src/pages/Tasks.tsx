@@ -6,7 +6,7 @@ import { addDays, isOpen, isOverdue, today } from '../lib/dates'
 import { useSettings } from '../lib/settings'
 import { PRIORITIES, PRIORITY_RANK, STATUSES, type Priority, type Status, type Task } from '../lib/types'
 import { PageHeader } from '../components/Layout'
-import { DateLabel, DoingToggle, DoneCheck, OverdueBadge, TaskCard, ValidationBadge } from '../components/TaskCard'
+import { DateLabel, DoingToggle, DoneCheck, OverdueBadge, RecurringBadge, TaskCard, ValidationBadge } from '../components/TaskCard'
 import { useEditor } from '../components/TaskEditor'
 import { AreaChip, EmptyState, PriorityFlag, StatusSelect } from '../components/ui'
 
@@ -214,10 +214,11 @@ export function Tasks() {
                       </td>
                       <td className="py-3 pr-4">
                         <div className={`font-medium ${closed ? 'text-muted line-through' : ''}`}>{x.title}</div>
-                        {(x.subtasks.length > 0 || x.task_tags.length > 0 || isOverdue(x) || x.validation_of || x.requires_validation) && (
+                        {(x.subtasks.length > 0 || x.task_tags.length > 0 || isOverdue(x) || x.validation_of || x.requires_validation || x.recurrence_id) && (
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
                             <OverdueBadge task={x} />
                             <ValidationBadge task={x} />
+                            <RecurringBadge task={x} />
                             {x.subtasks.length > 0 && (
                               <span>
                                 {x.subtasks.filter((s) => s.done).length}/{x.subtasks.length}

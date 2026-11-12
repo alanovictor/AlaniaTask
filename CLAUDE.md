@@ -64,6 +64,7 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 - Cadastro completo: diária, dias da semana escolhidos, semanal, quinzenal, mensal (dia do mês ou "Nª dia-da-semana"), anual, a cada X dias/semanas/meses; data de início; fim (nunca, em data, após N vezes); horário opcional.
 - Cada ocorrência vira uma tarefa normal no seu dia e entra no Doing nesse dia.
 - Ocorrências não concluídas acumulam (cada uma com aviso de atrasada).
+- Implementado: tabela recurrences + public.generate_recurring_tasks(p_today) (supabase/migrations/0003_recurring.sql). O app chama a função a cada carga com a data local; pg_cron roda todo dia 03:05 UTC. A mesma regra existe em TS (src/lib/recurrence.ts) para prévia e para as ocorrências futuras tracejadas no Planejamento — manter as duas iguais. Pausar e retomar não gera o que ficou para trás.
 
 ### Notificações
 - Web Push (PWA instalado no celular e no PC).
@@ -80,6 +81,6 @@ Nomes em português no app: Hoje (Doing), Tarefas, Planejamento, Projetos, Valid
 1. Projeto base, login (e-mail e senha), áreas, CRUD de tarefas, seção Tasks e Doing. ✅ feito (+ PWA instalável)
 2. Planning (calendário semana/mês, drag and drop). ✅ feito
 3. Validation. ✅ feito
-4. Recorrentes.
+4. Recorrentes. ✅ feito
 5. PWA instalável + notificações push.
 6. Backup e ping via GitHub Actions.

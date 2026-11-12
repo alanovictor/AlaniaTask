@@ -56,6 +56,8 @@ export interface Task {
   time: string | null
   requires_validation: boolean
   validation_of: string | null
+  recurrence_id: string | null
+  occurrence_date: string | null
   completed_at: string | null
   position: number
   created_at: string

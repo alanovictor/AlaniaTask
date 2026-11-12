@@ -1,6 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { supabase } from './supabase'
 import type { Area, Priority, Status, Subtask, Tag, Task } from './types'
+import type { Recurrence } from './recurrence'
+import { addDays, today } from './dates'
+
+export type RecurrenceDraft = Omit<Recurrence, 'id' | 'last_generated' | 'generated_count' | 'created_at'> & { id?: string }
 
 export interface SubtaskDraft {
   id?: string
@@ -28,6 +32,7 @@ interface DataCtx {
   areas: Area[]
   tags: Tag[]
   tasks: Task[]
+  recurrences: Recurrence[]
   areaById: Map<string, Area>
   tagById: Map<string, Tag>
   reload: () => Promise<void>
@@ -38,6 +43,9 @@ interface DataCtx {
   addArea: (name: string, color: string) => Promise<void>
   updateArea: (id: string, patch: Partial<Pick<Area, 'name' | 'color'>>) => Promise<void>
   deleteArea: (id: string) => Promise<void>
+  saveRecurrence: (d: RecurrenceDraft) => Promise<void>
+  setRecurrenceActive: (id: string, active: boolean) => Promise<void>
+  deleteRecurrence: (id: string) => Promise<void>
 }
 
 const Ctx = createContext<DataCtx | null>(null)
@@ -54,14 +62,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [areas, setAreas] = useState<Area[]>([])
   const [tags, setTags] = useState<Tag[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
+  const [recurrences, setRecurrences] = useState<Recurrence[]>([])
 
   const reload = useCallback(async () => {
-    const [a, g, k] = await Promise.all([
+    // cria as tarefas das recorrências até hoje (data local); falha aqui não impede o resto
+    await supabase.rpc('generate_recurring_tasks', { p_today: today() }).then(() => undefined, () => undefined)
+    const [a, g, k, rc] = await Promise.all([
       supabase.from('areas').select('*').order('position').order('created_at'),
       supabase.from('tags').select('*').order('name'),
       supabase.from('tasks').select(TASK_SELECT).order('created_at', { ascending: false }),
+      supabase.from('recurrences').select('*').order('created_at'),
     ])
-    const err = a.error ?? g.error ?? k.error
+    const err = a.error ?? g.error ?? k.error ?? rc.error
     if (err) {
       setError(err.message)
     } else {
@@ -69,6 +81,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setAreas(a.data as Area[])
       setTags(g.data as Tag[])
       setTasks((k.data as Task[]).map(sortSubtasks))
+      setRecurrences(rc.data as Recurrence[])
     }
     setLoading(false)
   }, [])
@@ -225,6 +238,50 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [reload],
   )
 
+  const saveRecurrence = useCallback(
+    async (d: RecurrenceDraft) => {
+      const { id, ...row } = d
+      const clean = {
+        ...row,
+        title: row.title.trim(),
+        description: row.description?.trim() || null,
+        time: row.time || null,
+        until_date: row.end_type === 'until' ? row.until_date : null,
+        max_count: row.end_type === 'count' ? row.max_count : null,
+        updated_at: new Date().toISOString(),
+      }
+      const { error } = id ? await supabase.from('recurrences').update(clean).eq('id', id) : await supabase.from('recurrences').insert(clean)
+      if (error) throw error
+      await reload()
+    },
+    [reload],
+  )
+
+  const setRecurrenceActive = useCallback(
+    async (id: string, active: boolean) => {
+      setRecurrences((prev) => prev.map((x) => (x.id === id ? { ...x, active } : x)))
+      // ao reativar, não gera o que ficou para trás durante a pausa
+      const startsLater = (recurrences.find((x) => x.id === id)?.start_date ?? '') > today()
+      const patch = active ? { active, last_generated: startsLater ? null : addDays(today(), -1) } : { active }
+      const { error } = await supabase.from('recurrences').update(patch).eq('id', id)
+      if (error) {
+        await reload()
+        throw error
+      }
+      await reload()
+    },
+    [reload, recurrences],
+  )
+
+  const deleteRecurrence = useCallback(
+    async (id: string) => {
+      const { error } = await supabase.from('recurrences').delete().eq('id', id)
+      if (error) throw error
+      await reload()
+    },
+    [reload],
+  )
+
   const value = useMemo<DataCtx>(
     () => ({
       loading,
@@ -232,6 +289,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       areas,
       tags,
       tasks,
+      recurrences,
       areaById: new Map(areas.map((a) => [a.id, a])),
       tagById: new Map(tags.map((t) => [t.id, t])),
       reload,
@@ -242,8 +300,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addArea,
       updateArea,
       deleteArea,
+      saveRecurrence,
+      setRecurrenceActive,
+      deleteRecurrence,
     }),
-    [loading, error, areas, tags, tasks, reload, saveTask, patchTask, toggleSubtask, deleteTask, addArea, updateArea, deleteArea],
+    [loading, error, areas, tags, tasks, recurrences, saveRecurrence, setRecurrenceActive, deleteRecurrence, reload, saveTask, patchTask, toggleSubtask, deleteTask, addArea, updateArea, deleteArea],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

@@ -1,4 +1,4 @@
-import { Check, CalendarDays, Clock, ListChecks, Sun, SunDim, AlertTriangle, ShieldCheck } from 'lucide-react'
+import { Check, CalendarDays, Clock, ListChecks, Sun, SunDim, AlertTriangle, ShieldCheck, Repeat } from 'lucide-react'
 import { useData } from '../lib/data'
 import { daysLate, formatDate, isInDoing, isOverdue, today } from '../lib/dates'
 import { useSettings } from '../lib/settings'
@@ -75,6 +75,16 @@ export function ValidationBadge({ task }: { task: Task }) {
   return null
 }
 
+export function RecurringBadge({ task }: { task: Task }) {
+  const { t } = useSettings()
+  if (!task.recurrence_id) return null
+  return (
+    <span className="inline-flex text-accent" title={t.recurring_badge} aria-label={t.recurring_badge}>
+      <Repeat size={14} />
+    </span>
+  )
+}
+
 export function DoingToggle({ task, compact = false }: { task: Task; compact?: boolean }) {
   const { t } = useSettings()
   const { patchTask } = useData()
@@ -122,6 +132,7 @@ export function TaskCard({ task, showDoingToggle = false }: { task: Task; showDo
           <StatusSelect value={task.status} onChange={(status) => patchTask(task.id, { status }).catch(() => {})} />
           <OverdueBadge task={task} />
           <ValidationBadge task={task} />
+          <RecurringBadge task={task} />
           {area && <AreaChip name={area.name} color={area.color} />}
           <DateLabel task={task} />
           {task.subtasks.length > 0 && (

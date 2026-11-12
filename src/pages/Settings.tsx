@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Download, Plus, Trash2 } from 'lucide-react'
 import { isIOS, useInstallPrompt } from '../lib/install'
+import { NotificationsCard } from '../components/NotificationsCard'
 import { useData } from '../lib/data'
 import { useSettings } from '../lib/settings'
 import { AREA_COLORS, type Area } from '../lib/types'
 import { PageHeader } from '../components/Layout'
 import { ColorPicker, Segmented } from '../components/ui'
 
-export function Settings({ email }: { email: string }) {
+export function Settings({ email, userId }: { email: string; userId: string }) {
   const { t, theme, setTheme, lang, setLang } = useSettings()
   const { areas, tasks, addArea, deleteArea } = useData()
   const [name, setName] = useState('')
@@ -77,6 +78,8 @@ export function Settings({ email }: { email: string }) {
             </div>
           </div>
         </Card>
+
+        <NotificationsCard userId={userId} />
 
         <InstallCard />
 

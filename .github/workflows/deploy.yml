@@ -21,6 +21,7 @@ jobs:
       # Valores PÚBLICOS do Supabase (feitos para ficar no frontend; os dados são protegidos por RLS).
       VITE_SUPABASE_URL: https://wfovajoqmmocmkpwkyer.supabase.co
       VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_7O8d0AvW3xrVb406k4ofdw_4v729ho2
+      VITE_SUPABASE_ANON_JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indmb3Zham9xbW1vY21rcHdreWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNDMxMTMsImV4cCI6MjEwOTgxOTExM30.vZDzGKDv5UCOJR4cvMCvxbeMQZowbI_j9iPWuWCZDGE
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

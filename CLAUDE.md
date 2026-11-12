@@ -71,6 +71,12 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 - Configurável: resumo do Doing de manhã (horário escolhido), aviso no horário da tarefa (antecedência escolhida), aviso de atrasadas.
 - Botão "Ativar notificações" que reage ao estado da permissão (default → pede; granted → mostra ativo + teste; denied → explica como desbloquear).
 
+### Notificações — como foi implementado
+- Edge Function `notify` (supabase/functions/notify/index.ts), publicada pelo painel do Supabase (Edge Functions → notify → Code → Deploy). Verify JWT fica LIGADO: o app e o pg_cron chamam com a chave anon legada (JWT público, VITE_SUPABASE_ANON_JWT); o login do usuário vai em `x-user-token`.
+- Chaves VAPID geradas pela própria função na 1ª execução e guardadas em public.app_secrets (sem acesso para anon/authenticated). Nenhuma chave secreta no repositório.
+- pg_cron `alania-notify` a cada 5 min (migrations 0004 e 0005); `notification_log` evita repetir envios.
+- Service worker: public/push-sw.js importado via workbox.importScripts.
+
 ## Rotinas (GitHub Actions)
 - Backup semanal dos dados.
 - Ping periódico para o projeto gratuito do Supabase não pausar (pausa após 7 dias sem uso).
@@ -82,5 +88,5 @@ Nomes em português no app: Hoje (Doing), Tarefas, Planejamento, Projetos, Valid
 2. Planning (calendário semana/mês, drag and drop). ✅ feito
 3. Validation. ✅ feito
 4. Recorrentes. ✅ feito
-5. PWA instalável + notificações push.
+5. PWA instalável + notificações push. ✅ feito
 6. Backup e ping via GitHub Actions.

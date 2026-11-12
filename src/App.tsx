@@ -46,7 +46,7 @@ export default function App() {
         <DataProvider key={session.user.id}>
           <EditorProvider>
             <HashRouter>
-              <Shell email={session.user.email ?? ''} />
+              <Shell email={session.user.email ?? ''} userId={session.user.id} />
             </HashRouter>
           </EditorProvider>
         </DataProvider>
@@ -63,7 +63,7 @@ function Splash() {
   )
 }
 
-function Shell({ email }: { email: string }) {
+function Shell({ email, userId }: { email: string; userId: string }) {
   const { t } = useSettings()
   const { loading, error, reload } = useData()
 
@@ -85,7 +85,7 @@ function Shell({ email }: { email: string }) {
         <Route path="/planning" element={<Planning />} />
         <Route path="/validation" element={<Validation />} />
         <Route path="/recurring" element={<Recurring />} />
-        <Route path="/settings" element={<Settings email={email} />} />
+        <Route path="/settings" element={<Settings email={email} userId={userId} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

@@ -22,6 +22,7 @@ export interface TaskDraft {
   date: string | null
   time: string | null
   requires_validation: boolean
+  reminder_minutes: number | null
   subtasks: SubtaskDraft[]
   tagNames: string[]
 }
@@ -120,6 +121,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         date: d.date || null,
         time: d.date ? d.time || null : null,
         requires_validation: d.requires_validation,
+        // o aviso precisa de data e horário
+        reminder_minutes: d.date && d.time ? d.reminder_minutes : null,
       }
       let taskId = d.id
       if (taskId) {
@@ -246,6 +249,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         title: row.title.trim(),
         description: row.description?.trim() || null,
         time: row.time || null,
+        reminder_minutes: row.time ? row.reminder_minutes : null,
         until_date: row.end_type === 'until' ? row.until_date : null,
         max_count: row.end_type === 'count' ? row.max_count : null,
         updated_at: new Date().toISOString(),
@@ -326,6 +330,7 @@ export function emptyDraft(partial: Partial<TaskDraft> = {}): TaskDraft {
     date: null,
     time: null,
     requires_validation: false,
+    reminder_minutes: null,
     subtasks: [],
     tagNames: [],
     ...partial,
@@ -343,6 +348,7 @@ export function draftFromTask(t: Task, tagById: Map<string, Tag>): TaskDraft {
     date: t.date,
     time: t.time ? t.time.slice(0, 5) : null,
     requires_validation: t.requires_validation,
+    reminder_minutes: t.reminder_minutes,
     subtasks: t.subtasks.map((s) => ({ id: s.id, title: s.title, done: s.done })),
     tagNames: t.task_tags.map((x) => tagById.get(x.tag_id)?.name).filter((n): n is string => !!n),
   }

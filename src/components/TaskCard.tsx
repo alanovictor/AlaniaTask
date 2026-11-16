@@ -1,4 +1,4 @@
-import { Check, CalendarDays, Clock, ListChecks, Sun, SunDim, AlertTriangle, ShieldCheck, Repeat } from 'lucide-react'
+import { Check, CalendarDays, Clock, ListChecks, Sun, SunDim, AlertTriangle, ShieldCheck, Repeat, Bell } from 'lucide-react'
 import { useData } from '../lib/data'
 import { daysLate, formatDate, isInDoing, isOverdue, today } from '../lib/dates'
 import { useSettings } from '../lib/settings'
@@ -39,6 +39,7 @@ export function DateLabel({ task }: { task: Task }) {
         <>
           <Clock size={13} className="ml-1" />
           {task.time.slice(0, 5)}
+          {task.reminder_minutes !== null && <Bell size={12} className="text-accent" aria-label={t.notify_label} />}
         </>
       )}
     </span>

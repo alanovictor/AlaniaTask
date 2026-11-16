@@ -18,6 +18,7 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 
 - Design moderno. Paleta: preto/grafite com destaque em laranja quente. Tema escuro e claro (escolha do usuário; padrão segue o sistema).
 - Idioma: português ou inglês, escolhido pelo usuário; o app inteiro troca (i18n, sem texto fixo nos componentes).
+- Sem zoom no celular (viewport user-scalable=no + bloqueio de pinça no iOS + campos com 16px), para parecer app.
 - Mobile-first e responsivo. Boa navegação tanto no PC quanto no celular.
 - Menu lateral expansível (no PC recolhe para ícones; no celular vira gaveta). Ordem:
   1. **Doing** (tela inicial)
@@ -68,7 +69,8 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 
 ### Notificações
 - Web Push (PWA instalado no celular e no PC).
-- Configurável: resumo do Doing de manhã (horário escolhido), aviso no horário da tarefa (antecedência escolhida), aviso de atrasadas.
+- Aviso de cada tarefa é definido NA TAREFA, ao criar/editar (campo "Avisar": não avisar, na hora, 5/10/15/30 min, 1/2 h, 1 dia antes; exige data e horário) — coluna tasks.reminder_minutes (também em recurrences, herdado pelas tarefas geradas).
+- Gerais (Configurações): resumo do Hoje de manhã e aviso de atrasadas, com horários escolhidos.
 - Botão "Ativar notificações" que reage ao estado da permissão (default → pede; granted → mostra ativo + teste; denied → explica como desbloquear).
 
 ### Notificações — como foi implementado

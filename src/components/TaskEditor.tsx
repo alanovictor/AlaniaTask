@@ -4,6 +4,7 @@ import { draftFromTask, emptyDraft, useData, type TaskDraft } from '../lib/data'
 import { useSettings } from '../lib/settings'
 import { PRIORITIES, PRIORITY_COLOR, STATUSES, type Task } from '../lib/types'
 import { Field, Modal, Segmented, Toggle } from './ui'
+import { ReminderField } from './ReminderField'
 
 interface EditorCtx {
   openNew: (partial?: Partial<TaskDraft>) => void
@@ -30,7 +31,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       const last = readLast()
       // pré-seleciona a última área/prioridade usadas
       const area_id = last.area_id && areaById.has(last.area_id) ? last.area_id : null
-      setDraft(emptyDraft({ area_id, priority: last.priority ?? 'medium', ...partial }))
+      setDraft(emptyDraft({ area_id, priority: last.priority ?? 'medium', reminder_minutes: last.reminder_minutes ?? null, ...partial }))
     },
     [areaById],
   )
@@ -80,7 +81,7 @@ function TaskEditorModal({ initial, onClose }: { initial: TaskDraft; onClose: ()
       await saveTask(newTag.trim() ? { ...d, tagNames: [...d.tagNames, newTag.trim()] } : d)
       if (!d.id) {
         try {
-          localStorage.setItem(LAST_KEY, JSON.stringify({ area_id: d.area_id, priority: d.priority }))
+          localStorage.setItem(LAST_KEY, JSON.stringify({ area_id: d.area_id, priority: d.priority, reminder_minutes: d.reminder_minutes }))
         } catch {
           /* ignora */
         }
@@ -180,6 +181,8 @@ function TaskEditorModal({ initial, onClose }: { initial: TaskDraft; onClose: ()
             <input type="time" className="input" value={d.time ?? ''} disabled={!d.date} onChange={(e) => set('time', e.target.value || null)} />
           </Field>
         </div>
+
+        <ReminderField value={d.reminder_minutes} onChange={(v) => set('reminder_minutes', v)} enabled={!!d.date && !!d.time} />
 
         <Field label={t.description}>
           <textarea className="input min-h-[84px] resize-y" placeholder={t.description_ph} value={d.description} onChange={(e) => set('description', e.target.value)} />

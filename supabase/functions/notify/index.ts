@@ -122,6 +122,8 @@ function localNow(tz: string): { date: string; time: string } {
   )
   return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` }
 }
+const dayIndex = (iso: string) => Math.round(Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10))) / 86400000)
+const addDaysISO = (iso: string, n: number) => new Date((dayIndex(iso) + n) * 86400000).toISOString().slice(0, 10)
 const toMin = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5))
 const PRIORITY_RANK: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 }
 
@@ -138,8 +140,6 @@ async function tick() {
       timezone: 'America/Sao_Paulo',
       notify_morning: true,
       morning_time: '08:00',
-      notify_reminders: true,
-      reminder_minutes: 15,
       notify_overdue: true,
       overdue_time: '18:00',
       ...(st ?? {}),
@@ -162,7 +162,6 @@ async function tick() {
       .lte('date', now.date)
     const tasks = open ?? []
     const overdue = tasks.filter((x) => x.date < now.date)
-    const todays = tasks.filter((x) => x.date === now.date)
 
     // resumo da manhã (janela de 3 h após o horário escolhido)
     const mMin = toMin(String(s.morning_time))
@@ -178,15 +177,24 @@ async function tick() {
       total += await sendToUser(userId, { title, body, tag: `morning-${now.date}`, url: APP_URL })
     }
 
-    // lembretes antes do horário (até 30 min depois do horário, caso o agendamento atrase)
-    if (s.notify_reminders) {
-      for (const x of todays) {
-        if (!x.time) continue
-        const at = toMin(String(x.time))
-        const remindAt = at - Number(s.reminder_minutes)
-        if (nowMin >= remindAt && nowMin <= at + 30 && (await claim(userId, 'reminder', `${x.id}:${now.date}`))) {
-          total += await sendToUser(userId, { title: t.reminder(String(x.time).slice(0, 5)), body: x.title, tag: `task-${x.id}`, url: APP_URL })
-        }
+    // aviso de cada tarefa (definido na criação: reminder_minutes antes da data+horário).
+    // Envia a partir do momento do aviso até 30 min depois do horário, caso o agendamento atrase.
+    const { data: withReminder } = await db
+      .from('tasks')
+      .select('id, title, date, time, reminder_minutes')
+      .eq('user_id', userId)
+      .not('status', 'in', '(done,validated)')
+      .not('reminder_minutes', 'is', null)
+      .not('time', 'is', null)
+      .gte('date', now.date)
+      .lte('date', addDaysISO(now.date, 8))
+    const nowAbs = dayIndex(now.date) * 1440 + nowMin
+    for (const x of withReminder ?? []) {
+      const atAbs = dayIndex(x.date) * 1440 + toMin(String(x.time))
+      const remindAbs = atAbs - Number(x.reminder_minutes)
+      if (nowAbs >= remindAbs && nowAbs <= atAbs + 30 && (await claim(userId, 'reminder', `${x.id}:${x.date}:${String(x.time).slice(0, 5)}:${x.reminder_minutes}`))) {
+        const when = String(x.time).slice(0, 5) + (x.date !== now.date ? ` · ${x.date.slice(8, 10)}/${x.date.slice(5, 7)}` : '')
+        total += await sendToUser(userId, { title: t.reminder(when), body: x.title, tag: `task-${x.id}`, url: APP_URL })
       }
     }
 

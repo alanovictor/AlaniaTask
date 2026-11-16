@@ -14,6 +14,7 @@ export interface Recurrence {
   priority: Priority
   time: string | null
   requires_validation: boolean
+  reminder_minutes: number | null
   freq: Freq
   every_n: number
   weekdays: number[] // 0 = segunda … 6 = domingo

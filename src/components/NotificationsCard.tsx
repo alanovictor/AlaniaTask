@@ -117,17 +117,9 @@ export function NotificationsCard({ userId }: { userId: string }) {
       {msg && <p className="mt-3 text-sm text-muted">{msg}</p>}
 
       <div className={`mt-5 space-y-3 ${active ? '' : 'pointer-events-none opacity-50'}`}>
+        <p className="text-xs text-muted">{t.notif_task_hint}</p>
         <Row label={t.notif_morning} hint={t.notif_morning_hint} on={prefs.notify_morning} onToggle={(v) => save({ notify_morning: v })}>
           <input type="time" className="input w-28 py-1.5" value={prefs.morning_time} onChange={(e) => e.target.value && save({ morning_time: e.target.value })} />
-        </Row>
-        <Row label={t.notif_reminders} hint={t.notif_reminders_hint} on={prefs.notify_reminders} onToggle={(v) => save({ notify_reminders: v })}>
-          <select className="input w-28 py-1.5" value={prefs.reminder_minutes} onChange={(e) => save({ reminder_minutes: Number(e.target.value) })}>
-            {[0, 5, 10, 15, 30, 60, 120].map((m) => (
-              <option key={m} value={m}>
-                {t.notif_minutes_before(m)}
-              </option>
-            ))}
-          </select>
         </Row>
         <Row label={t.notif_overdue} hint={t.notif_overdue_hint} on={prefs.notify_overdue} onToggle={(v) => save({ notify_overdue: v })}>
           <input type="time" className="input w-28 py-1.5" value={prefs.overdue_time} onChange={(e) => e.target.value && save({ overdue_time: e.target.value })} />

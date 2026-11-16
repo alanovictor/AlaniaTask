@@ -4,6 +4,10 @@ import './index.css'
 import './lib/install' // registra o beforeinstallprompt cedo
 import App from './App'
 
+// iOS (Safari) ignora user-scalable=no: bloqueia o gesto de pinça manualmente
+document.addEventListener('gesturestart', (e) => e.preventDefault(), { passive: false })
+document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault() }, { passive: false })
+
 // Versão nova publicada: o service worker novo assume e a página recarrega sozinha
 // (sem precisar fechar e abrir o app). Também procura atualização ao voltar para o app.
 if ('serviceWorker' in navigator) {

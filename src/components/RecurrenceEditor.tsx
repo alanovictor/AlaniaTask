@@ -6,6 +6,7 @@ import { nextOccurrences, weekdayOf, type Freq, type Recurrence } from '../lib/r
 import { useSettings } from '../lib/settings'
 import { PRIORITIES, PRIORITY_COLOR } from '../lib/types'
 import { Field, Modal, Segmented, Toggle } from './ui'
+import { ReminderField } from './ReminderField'
 
 export function emptyRecurrence(): RecurrenceDraft {
   const start = today()
@@ -16,6 +17,7 @@ export function emptyRecurrence(): RecurrenceDraft {
     priority: 'medium',
     time: null,
     requires_validation: false,
+    reminder_minutes: null,
     freq: 'weekly',
     every_n: 1,
     weekdays: [weekdayOf(start)],
@@ -40,6 +42,7 @@ export function draftFromRecurrence(r: Recurrence): RecurrenceDraft {
     priority: r.priority,
     time: r.time ? r.time.slice(0, 5) : null,
     requires_validation: r.requires_validation,
+    reminder_minutes: r.reminder_minutes,
     freq: r.freq,
     every_n: r.every_n,
     weekdays: r.weekdays,
@@ -225,6 +228,8 @@ export function RecurrenceEditor({ initial, generatedCount = 0, lastGenerated = 
               <input type="time" className="input" value={d.time ?? ''} onChange={(e) => set('time', e.target.value || null)} />
             </Field>
           </div>
+
+          <ReminderField value={d.reminder_minutes} onChange={(v) => set('reminder_minutes', v)} enabled={!!d.time} />
 
           <Field label={t.ends}>
             <div className="space-y-2.5">

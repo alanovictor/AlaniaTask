@@ -92,3 +92,5 @@ Nomes em português no app: Hoje (Doing), Tarefas, Planejamento, Projetos, Valid
 4. Recorrentes. ✅ feito
 5. PWA instalável + notificações push. ✅ feito
 6. Backup e ping via GitHub Actions.
+7. Projetos (vincular tarefas a projetos) — a definir com o usuário.
+8. Sincronização com Google Tasks (combinada para depois de Projetos): lista diária "Alania · Hoje" criada no Google Tasks; concluir no app marca no Google na hora; concluir no Google reflete no app em até 5 min (polling no tick do pg_cron, Tasks API não tem webhook). Exige OAuth do Google Cloud só para acessar o Tasks (o login do app continua e-mail/senha), app publicado "em produção" para o token não expirar em 7 dias; refresh token guardado em app_secrets/tabela fechada. Só título, data, notas e concluída vão para o Google (prioridade opcional como emoji no título).

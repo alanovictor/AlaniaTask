@@ -91,7 +91,11 @@ Nomes em português no app: Hoje (Doing), Tarefas, Planejamento, Projetos, Valid
 3. Validation. ✅ feito
 4. Recorrentes. ✅ feito
 5. PWA instalável + notificações push. ✅ feito
-6. Backup e ping via GitHub Actions.
+6. Backup e ping via GitHub Actions. ✅ feito. Edge Function `backup` (Verify JWT ligado, chamada com a anon JWT pública):
+   - `{"action":"ping"}`: consulta real no banco. Workflow `keepalive.yml` diário; também reativa os agendamentos (o GitHub desliga cron de repo público sem atividade há 60 dias).
+   - `{"action":"backup"}`: todas as tabelas de dados (sem push_subscriptions/segredos), gzip + AES-256-GCM, chave AES cifrada com RSA-OAEP 4096 (chave pública embutida na função). Workflow `backup.yml` semanal guarda como artefato por 90 dias. Resposta pública é segura porque só sai cifrada.
+   - Chave privada fica FORA do repo em D:\Dev\AlaniaTask-backup\ (com LEIA-ME). Abrir: `node scripts/decrypt-backup.mjs backup.json chave-privada-backup.pem`.
+   - Nenhum segredo no GitHub (não há gh CLI e segredos não são digitados por agentes).
 7. Projetos. ✅ feito (migração 0007). Detalhes:
    - Projeto: nome, cor, descrição, prazo, status ativo/pausado/concluído. Excluir projeto deixa as tarefas sem projeto.
    - Tarefa tem no máximo um projeto (`tasks.project_id`), independente da área. Criar tarefa já no projeto ou "Vincular tarefas" existentes.

@@ -1,0 +1,29 @@
+name: Backup semanal
+
+# Baixa um backup CRIPTOGRAFADO de todas as tabelas e guarda como artefato por 90 dias.
+# Só abre com a chave privada (fora do repositório): node scripts/decrypt-backup.mjs <arquivo> <chave.pem>
+on:
+  schedule:
+    - cron: '23 6 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      ANON_JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indmb3Zham9xbW1vY21rcHdreWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNDMxMTMsImV4cCI6MjEwOTgxOTExM30.vZDzGKDv5UCOJR4cvMCvxbeMQZowbI_j9iPWuWCZDGE
+    steps:
+      - name: Gerar backup
+        run: |
+          curl -fsS -X POST https://wfovajoqmmocmkpwkyer.supabase.co/functions/v1/backup             -H "Authorization: Bearer $ANON_JWT" -H 'Content-Type: application/json'             -d '{"action":"backup"}' -o backup.json
+          grep -q '"format":"alania-backup-v1"' backup.json
+          python3 -c "import json;print(json.load(open('backup.json'))['counts'])"
+          echo "DAY=$(date -u +%Y-%m-%d)" >> $GITHUB_ENV
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alania-backup-${{ env.DAY }}
+          path: backup.json
+          retention-days: 90

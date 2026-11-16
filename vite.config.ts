@@ -36,7 +36,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         navigateFallback: 'index.html',
         // retorno do login do Google precisa chegar como página própria
-        navigateFallbackDenylist: [/google\.html/],
+        navigateFallbackDenylist: [/google\.html/, /privacy\.html/],
         cleanupOutdatedCaches: true,
         // recebe as notificações push (public/push-sw.js)
         importScripts: ['push-sw.js'],

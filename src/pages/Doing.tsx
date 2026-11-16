@@ -79,7 +79,7 @@ export function Doing() {
                 {t.doing_done_today} · {doneToday.length}
               </button>
               {showDone && (
-                <div className="grid gap-2.5 opacity-75">
+                <div className="grid grid-cols-1 gap-2.5 opacity-75">
                   {doneToday.map((x) => (
                     <TaskCard key={x.id} task={x} />
                   ))}
@@ -100,7 +100,7 @@ function Section({ title, count, danger = false, children }: { title: string; co
         {title}
         <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{count}</span>
       </h2>
-      <div className="grid gap-2.5">{children}</div>
+      <div className="grid grid-cols-1 gap-2.5">{children}</div>
     </section>
   )
 }

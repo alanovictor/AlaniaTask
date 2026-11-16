@@ -70,7 +70,7 @@ export function Validation() {
                 <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{pending.length}</span>
               </h2>
               <p className="mt-0.5 mb-3 text-xs text-muted">{t.validation_pending_hint}</p>
-              <div className="grid gap-4">{pending.map((x) => item(x, true))}</div>
+              <div className="grid grid-cols-1 gap-4">{pending.map((x) => item(x, true))}</div>
             </section>
           )}
 
@@ -80,7 +80,7 @@ export function Validation() {
                 {t.validation_scheduled}
                 <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs">{scheduled.length}</span>
               </h2>
-              <div className="grid gap-4">{scheduled.map((x) => item(x, false))}</div>
+              <div className="grid grid-cols-1 gap-4">{scheduled.map((x) => item(x, false))}</div>
             </section>
           )}
 
@@ -90,7 +90,7 @@ export function Validation() {
                 <ChevronDown size={16} className={`transition-transform ${showRecent ? '' : '-rotate-90'}`} />
                 {t.validation_recent} · {recent.length}
               </button>
-              {showRecent && <div className="grid gap-4 opacity-75">{recent.map((x) => item(x, false))}</div>}
+              {showRecent && <div className="grid grid-cols-1 gap-4 opacity-75">{recent.map((x) => item(x, false))}</div>}
             </section>
           )}
         </div>

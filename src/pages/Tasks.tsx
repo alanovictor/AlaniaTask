@@ -183,7 +183,7 @@ export function Tasks() {
       ) : (
         <>
           {/* Mobile: cartões */}
-          <div className="grid gap-2.5 lg:hidden">
+          <div className="grid grid-cols-1 gap-2.5 lg:hidden">
             {list.map((x) => (
               <TaskCard key={x.id} task={x} showDoingToggle />
             ))}

@@ -32,7 +32,7 @@ export function Settings({ email, userId }: { email: string; userId: string }) {
   return (
     <>
       <PageHeader title={t.settings_title} />
-      <div className="grid max-w-2xl gap-6">
+      <div className="grid max-w-2xl grid-cols-[minmax(0,1fr)] gap-6">
         <Card title={t.areas} hint={t.areas_hint}>
           <ul className="mb-4 space-y-1.5">
             {areas.map((a) => (

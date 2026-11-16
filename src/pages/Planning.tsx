@@ -383,7 +383,7 @@ export function Planning() {
         />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
         <aside className={`lg:sticky lg:top-10 ${mobileTab === 'unscheduled' ? '' : 'hidden lg:block'}`}>{unscheduledPanel}</aside>
         <section className={mobileTab === 'calendar' ? '' : 'hidden lg:block'}>
           {toolbar}

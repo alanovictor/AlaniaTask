@@ -69,6 +69,11 @@ body,
   height: 100%;
 }
 
+/* app não rola para o lado: nada pode empurrar a largura da tela */
+#root {
+  overflow-x: clip;
+}
+
 /* comportamento de app: sem zoom por toque duplo/pinça e sem aumento automático do texto */
 html {
   touch-action: manipulation;

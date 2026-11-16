@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Download, Plus, Trash2 } from 'lucide-react'
 import { isIOS, useInstallPrompt } from '../lib/install'
 import { NotificationsCard } from '../components/NotificationsCard'
+import { GoogleTasksCard } from '../components/GoogleTasksCard'
 import { useData } from '../lib/data'
 import { useSettings } from '../lib/settings'
 import { AREA_COLORS, type Area } from '../lib/types'
@@ -80,6 +81,8 @@ export function Settings({ email, userId }: { email: string; userId: string }) {
         </Card>
 
         <NotificationsCard userId={userId} />
+
+        <GoogleTasksCard />
 
         <InstallCard />
 

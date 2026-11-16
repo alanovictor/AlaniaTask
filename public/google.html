@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Alania Task</title>
+<meta name="robots" content="noindex" />
+</head>
+<body style="background:#141413;color:#f2f0ea;font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0">
+<p>Conectando ao Google Tasks…</p>
+<script>
+  // Retorno do login do Google: repassa o código para a tela de Configurações (no hash, longe do ?code= do Supabase).
+  var q = new URLSearchParams(location.search)
+  var p = new URLSearchParams()
+  if (q.get('code')) p.set('gcode', q.get('code'))
+  if (q.get('state')) p.set('gstate', q.get('state'))
+  if (q.get('error')) p.set('gerror', q.get('error'))
+  location.replace('./#/settings?' + p.toString())
+</script>
+</body>
+</html>

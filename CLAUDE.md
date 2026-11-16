@@ -103,4 +103,10 @@ Nomes em português no app: Hoje (Doing), Tarefas, Planejamento, Projetos, Valid
    - Bloqueada = alguma dependência não está Concluída/Validada → cadeado em todas as telas (inclusive Hoje; continua lá, o usuário decide tirar).
    - Ao passar uma tarefa bloqueada para Em andamento/Concluída/Validada aparece o aviso com as pendências (BlockGuard); "Fazer mesmo assim" segue e o projeto mostra alerta. O alerta é calculado (não há tabela): some sozinho quando as pendências são concluídas. Contagem de alertas no item Projetos do menu.
    - Página do projeto: Disponíveis (sem pendências, ou já iniciadas fora de ordem), Todas (por etapa) e Fluxograma (linhas por etapa, setas SVG).
-8. Sincronização com Google Tasks (combinada para depois de Projetos): lista diária "Alania · Hoje" criada no Google Tasks; concluir no app marca no Google na hora; concluir no Google reflete no app em até 5 min (polling no tick do pg_cron, Tasks API não tem webhook). Exige OAuth do Google Cloud só para acessar o Tasks (o login do app continua e-mail/senha), app publicado "em produção" para o token não expirar em 7 dias; refresh token guardado em app_secrets/tabela fechada. Só título, data, notas e concluída vão para o Google (prioridade opcional como emoji no título).
+8. Sincronização com Google Tasks. ✅ código pronto (migração 0008, função `gtasks`, cartão em Configurações). Regras combinadas:
+   - Lista padrão "Minhas tarefas" (`@default`). A cada 5 min (pg_cron `alania-gtasks`) e no botão "Sincronizar agora".
+   - Tarefas do Hoje (abertas, data ≤ hoje) são criadas no Google: título (com "HH:MM · " só se tiver horário), descrição nas notas, data.
+   - Concluir no app → conclui no Google; concluir no Google → conclui no app (só as criadas pelo app). Desmarcar/reabrir também espelha.
+   - Saiu do Hoje (sem data, outra data, excluída) → apaga do Google. Apagada no Google pelo usuário → não recria no mesmo dia.
+   - Tarefa criada direto no Google é ignorada.
+   - OAuth: escopo só `tasks`, redirect `https://alanovictor.github.io/AlaniaTask/google.html` (repassa code/state no hash para #/settings; fora do fallback do service worker). GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET nos secrets da função (o usuário cola o secret). Refresh token em `google_links` (tabela fechada); vínculo em `gtask_map`.

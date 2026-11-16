@@ -35,6 +35,8 @@ export default defineConfig({
         // só o app em cache; dados do Supabase sempre vêm da rede
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
         navigateFallback: 'index.html',
+        // retorno do login do Google precisa chegar como página própria
+        navigateFallbackDenylist: [/google\.html/],
         cleanupOutdatedCaches: true,
         // recebe as notificações push (public/push-sw.js)
         importScripts: ['push-sw.js'],

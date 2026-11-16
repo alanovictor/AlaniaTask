@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { supabase } from './supabase'
-import type { Area, Priority, Status, Subtask, Tag, Task } from './types'
+import type { Area, Priority, Project, Status, Subtask, Tag, Task, TaskDep } from './types'
+import { indexDeps, type DepIndex } from './projects'
 import type { Recurrence } from './recurrence'
 import { addDays, today } from './dates'
 
@@ -17,6 +18,8 @@ export interface TaskDraft {
   title: string
   description: string
   area_id: string | null
+  project_id: string | null
+  dependsOn: string[]
   priority: Priority
   status: Status
   date: string | null
@@ -34,6 +37,11 @@ interface DataCtx {
   tags: Tag[]
   tasks: Task[]
   recurrences: Recurrence[]
+  projects: Project[]
+  deps: TaskDep[]
+  depIndex: DepIndex
+  taskById: Map<string, Task>
+  projectById: Map<string, Project>
   areaById: Map<string, Area>
   tagById: Map<string, Tag>
   reload: () => Promise<void>
@@ -47,6 +55,18 @@ interface DataCtx {
   saveRecurrence: (d: RecurrenceDraft) => Promise<void>
   setRecurrenceActive: (id: string, active: boolean) => Promise<void>
   deleteRecurrence: (id: string) => Promise<void>
+  saveProject: (d: ProjectDraft) => Promise<string>
+  deleteProject: (id: string) => Promise<void>
+  linkTasks: (projectId: string, taskIds: string[]) => Promise<void>
+}
+
+export interface ProjectDraft {
+  id?: string
+  name: string
+  color: string
+  description: string
+  deadline: string | null
+  status: Project['status']
 }
 
 const Ctx = createContext<DataCtx | null>(null)
@@ -64,17 +84,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [tags, setTags] = useState<Tag[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [recurrences, setRecurrences] = useState<Recurrence[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [deps, setDeps] = useState<TaskDep[]>([])
 
   const reload = useCallback(async () => {
     // cria as tarefas das recorrências até hoje (data local); falha aqui não impede o resto
     await supabase.rpc('generate_recurring_tasks', { p_today: today() }).then(() => undefined, () => undefined)
-    const [a, g, k, rc] = await Promise.all([
+    const [a, g, k, rc, pj, dp] = await Promise.all([
       supabase.from('areas').select('*').order('position').order('created_at'),
       supabase.from('tags').select('*').order('name'),
       supabase.from('tasks').select(TASK_SELECT).order('created_at', { ascending: false }),
       supabase.from('recurrences').select('*').order('created_at'),
+      supabase.from('projects').select('*').order('position').order('created_at'),
+      supabase.from('task_deps').select('task_id, depends_on'),
     ])
-    const err = a.error ?? g.error ?? k.error ?? rc.error
+    const err = a.error ?? g.error ?? k.error ?? rc.error ?? pj.error ?? dp.error
     if (err) {
       setError(err.message)
     } else {
@@ -83,6 +107,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setTags(g.data as Tag[])
       setTasks((k.data as Task[]).map(sortSubtasks))
       setRecurrences(rc.data as Recurrence[])
+      setProjects(pj.data as Project[])
+      setDeps(dp.data as TaskDep[])
     }
     setLoading(false)
   }, [])
@@ -116,6 +142,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         title: d.title.trim(),
         description: d.description.trim() || null,
         area_id: d.area_id,
+        project_id: d.project_id,
         priority: d.priority,
         status: d.status,
         date: d.date || null,
@@ -156,6 +183,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
         if (error) throw error
       }
 
+      // dependências (o banco apaga as antigas sozinho se a tarefa trocou de projeto)
+      const prevDeps = deps.filter((x) => x.task_id === taskId).map((x) => x.depends_on)
+      const nextDeps = d.project_id ? [...new Set(d.dependsOn)] : []
+      if (prevDeps.join() !== nextDeps.join()) {
+        const { error } = await supabase.from('task_deps').delete().eq('task_id', taskId)
+        if (error) throw error
+        if (nextDeps.length) {
+          const { error: insErr } = await supabase.from('task_deps').insert(nextDeps.map((depends_on) => ({ task_id: taskId, depends_on })))
+          if (insErr) throw insErr
+        }
+      }
+
       // etiquetas
       const tagIds = await ensureTags(d.tagNames)
       const { error: delErr } = await supabase.from('task_tags').delete().eq('task_id', taskId)
@@ -166,7 +205,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       await reload()
     },
-    [tasks, ensureTags, reload],
+    [tasks, deps, ensureTags, reload],
   )
 
   const patchTask = useCallback<DataCtx['patchTask']>(
@@ -286,6 +325,45 @@ export function DataProvider({ children }: { children: ReactNode }) {
     [reload],
   )
 
+  const saveProject = useCallback(
+    async (d: ProjectDraft) => {
+      const row = { name: d.name.trim(), color: d.color, description: d.description.trim() || null, deadline: d.deadline || null, status: d.status }
+      let id = d.id
+      if (id) {
+        const { error } = await supabase.from('projects').update(row).eq('id', id)
+        if (error) throw error
+      } else {
+        const position = projects.length ? Math.max(...projects.map((p) => p.position)) + 1 : 0
+        const { data, error } = await supabase.from('projects').insert({ ...row, position }).select('id').single()
+        if (error) throw error
+        id = data.id as string
+      }
+      await reload()
+      return id
+    },
+    [projects, reload],
+  )
+
+  const deleteProject = useCallback(
+    async (id: string) => {
+      // as tarefas continuam existindo, só ficam sem projeto
+      const { error } = await supabase.from('projects').delete().eq('id', id)
+      if (error) throw error
+      await reload()
+    },
+    [reload],
+  )
+
+  const linkTasks = useCallback(
+    async (projectId: string, taskIds: string[]) => {
+      if (!taskIds.length) return
+      const { error } = await supabase.from('tasks').update({ project_id: projectId }).in('id', taskIds)
+      if (error) throw error
+      await reload()
+    },
+    [reload],
+  )
+
   const value = useMemo<DataCtx>(
     () => ({
       loading,
@@ -294,6 +372,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       tags,
       tasks,
       recurrences,
+      projects,
+      deps,
+      depIndex: indexDeps(deps),
+      taskById: new Map(tasks.map((x) => [x.id, x])),
+      projectById: new Map(projects.map((p) => [p.id, p])),
       areaById: new Map(areas.map((a) => [a.id, a])),
       tagById: new Map(tags.map((t) => [t.id, t])),
       reload,
@@ -307,8 +390,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       saveRecurrence,
       setRecurrenceActive,
       deleteRecurrence,
+      saveProject,
+      deleteProject,
+      linkTasks,
     }),
-    [loading, error, areas, tags, tasks, recurrences, saveRecurrence, setRecurrenceActive, deleteRecurrence, reload, saveTask, patchTask, toggleSubtask, deleteTask, addArea, updateArea, deleteArea],
+    [loading, error, areas, tags, tasks, recurrences, projects, deps, saveProject, deleteProject, linkTasks, saveRecurrence, setRecurrenceActive, deleteRecurrence, reload, saveTask, patchTask, toggleSubtask, deleteTask, addArea, updateArea, deleteArea],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
@@ -325,6 +411,8 @@ export function emptyDraft(partial: Partial<TaskDraft> = {}): TaskDraft {
     title: '',
     description: '',
     area_id: null,
+    project_id: null,
+    dependsOn: [],
     priority: 'medium',
     status: 'todo',
     date: null,
@@ -337,12 +425,14 @@ export function emptyDraft(partial: Partial<TaskDraft> = {}): TaskDraft {
   }
 }
 
-export function draftFromTask(t: Task, tagById: Map<string, Tag>): TaskDraft {
+export function draftFromTask(t: Task, tagById: Map<string, Tag>, dependsOn: string[] = []): TaskDraft {
   return {
     id: t.id,
     title: t.title,
     description: t.description ?? '',
     area_id: t.area_id,
+    project_id: t.project_id,
+    dependsOn,
     priority: t.priority,
     status: t.status,
     date: t.date,

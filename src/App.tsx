@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
-import { FolderKanban } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { SettingsProvider, useSettings } from './lib/settings'
 import { DataProvider, useData } from './lib/data'
 import { EditorProvider } from './components/TaskEditor'
+import { BlockGuardProvider } from './components/BlockGuard'
 import { Layout } from './components/Layout'
 import { Login } from './pages/Login'
 import { Doing } from './pages/Doing'
 import { Tasks } from './pages/Tasks'
 import { Settings } from './pages/Settings'
-import { Soon } from './pages/Soon'
+import { Projects, ProjectDetail } from './pages/Projects'
 import { Planning } from './pages/Planning'
 import { Validation } from './pages/Validation'
 import { Recurring } from './pages/Recurring'
@@ -44,11 +44,13 @@ export default function App() {
         <Login recovery={recovery} onRecovered={() => setRecovery(false)} />
       ) : (
         <DataProvider key={session.user.id}>
-          <EditorProvider>
-            <HashRouter>
-              <Shell email={session.user.email ?? ''} userId={session.user.id} />
-            </HashRouter>
-          </EditorProvider>
+          <BlockGuardProvider>
+            <EditorProvider>
+              <HashRouter>
+                <Shell email={session.user.email ?? ''} userId={session.user.id} />
+              </HashRouter>
+            </EditorProvider>
+          </BlockGuardProvider>
         </DataProvider>
       )}
     </SettingsProvider>
@@ -81,7 +83,8 @@ function Shell({ email, userId }: { email: string; userId: string }) {
       <Routes>
         <Route path="/" element={<Doing />} />
         <Route path="/tasks" element={<Tasks />} />
-        <Route path="/projects" element={<Soon title={t.nav_projects} icon={<FolderKanban size={28} />} />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/:id" element={<ProjectDetail />} />
         <Route path="/planning" element={<Planning />} />
         <Route path="/validation" element={<Validation />} />
         <Route path="/recurring" element={<Recurring />} />

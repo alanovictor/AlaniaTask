@@ -1,4 +1,6 @@
-import { Check, CalendarDays, Clock, ListChecks, Sun, SunDim, AlertTriangle, ShieldCheck, Repeat, Bell } from 'lucide-react'
+import { Check, CalendarDays, Clock, ListChecks, Sun, SunDim, AlertTriangle, ShieldCheck, Repeat, Bell, Lock, FolderKanban } from 'lucide-react'
+import { isOutOfOrder, openBlockers } from '../lib/projects'
+import { useBlockGuard } from './BlockGuard'
 import { useData } from '../lib/data'
 import { daysLate, formatDate, isInDoing, isOverdue, today } from '../lib/dates'
 import { useSettings } from '../lib/settings'
@@ -8,14 +10,14 @@ import { AreaChip, StatusSelect } from './ui'
 
 /** Botão circular de concluir, com a cor da prioridade. */
 export function DoneCheck({ task }: { task: Task }) {
-  const { patchTask } = useData()
+  const { setStatus } = useBlockGuard()
   const done = CLOSED.includes(task.status)
   const color = PRIORITY_COLOR[task.priority]
   return (
     <button
       onClick={(e) => {
         e.stopPropagation()
-        patchTask(task.id, { status: done ? 'todo' : 'done' }).catch(() => {})
+        setStatus(task, done ? 'todo' : 'done')
       }}
       className="grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 transition-colors"
       style={{ borderColor: color, background: done ? color : 'transparent' }}
@@ -86,6 +88,40 @@ export function RecurringBadge({ task }: { task: Task }) {
   )
 }
 
+/** Cadeado quando há dependências abertas; alerta quando a tarefa foi iniciada mesmo assim. */
+export function DepBadge({ task }: { task: Task }) {
+  const { t } = useSettings()
+  const { depIndex, taskById } = useData()
+  const blockers = openBlockers(task.id, depIndex, taskById)
+  if (!blockers.length) return null
+  const tip = [t.block_text, ...blockers.map((x) => `• ${x.title}`)].join('\n')
+  if (isOutOfOrder(task, depIndex, taskById))
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-danger/15 px-2 py-0.5 text-xs font-semibold text-danger" title={tip}>
+        <AlertTriangle size={12} />
+        {t.out_of_order}
+      </span>
+    )
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent" title={tip}>
+      <Lock size={12} />
+      {t.blocked_by_n(blockers.length)}
+    </span>
+  )
+}
+
+export function ProjectChip({ task }: { task: Task }) {
+  const { projectById } = useData()
+  const p = task.project_id ? projectById.get(task.project_id) : undefined
+  if (!p) return null
+  return (
+    <span className="inline-flex max-w-full items-center gap-1 truncate text-xs text-muted">
+      <FolderKanban size={13} className="shrink-0" style={{ color: p.color }} />
+      <span className="truncate">{p.name}</span>
+    </span>
+  )
+}
+
 export function DoingToggle({ task, compact = false }: { task: Task; compact?: boolean }) {
   const { t } = useSettings()
   const { patchTask } = useData()
@@ -108,8 +144,9 @@ export function DoingToggle({ task, compact = false }: { task: Task; compact?: b
   )
 }
 
-export function TaskCard({ task, showDoingToggle = false }: { task: Task; showDoingToggle?: boolean }) {
-  const { areaById, tagById, patchTask } = useData()
+export function TaskCard({ task, showDoingToggle = false, hideProject = false }: { task: Task; showDoingToggle?: boolean; hideProject?: boolean }) {
+  const { areaById, tagById } = useData()
+  const { setStatus } = useBlockGuard()
   const { openEdit } = useEditor()
   const area = task.area_id ? areaById.get(task.area_id) : undefined
   const done = CLOSED.includes(task.status)
@@ -130,10 +167,12 @@ export function TaskCard({ task, showDoingToggle = false }: { task: Task; showDo
           {showDoingToggle && <DoingToggle task={task} compact />}
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <StatusSelect value={task.status} onChange={(status) => patchTask(task.id, { status }).catch(() => {})} />
+          <StatusSelect value={task.status} onChange={(status) => setStatus(task, status)} />
+          <DepBadge task={task} />
           <OverdueBadge task={task} />
           <ValidationBadge task={task} />
           <RecurringBadge task={task} />
+          {!hideProject && <ProjectChip task={task} />}
           {area && <AreaChip name={area.name} color={area.color} />}
           <DateLabel task={task} />
           {task.subtasks.length > 0 && (

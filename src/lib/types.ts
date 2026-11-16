@@ -45,9 +45,30 @@ export interface Subtask {
   position: number
 }
 
+export type ProjectStatus = 'active' | 'paused' | 'done'
+export const PROJECT_STATUSES: ProjectStatus[] = ['active', 'paused', 'done']
+
+export interface Project {
+  id: string
+  name: string
+  color: string
+  description: string | null
+  deadline: string | null
+  status: ProjectStatus
+  position: number
+  created_at: string
+}
+
+/** task_id só deve ser feita depois de depends_on */
+export interface TaskDep {
+  task_id: string
+  depends_on: string
+}
+
 export interface Task {
   id: string
   area_id: string | null
+  project_id: string | null
   title: string
   description: string | null
   priority: Priority

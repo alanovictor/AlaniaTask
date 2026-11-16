@@ -24,7 +24,7 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
   1. **Doing** (tela inicial)
   2. **Tasks**
   3. **Planning**
-  4. **Projetos / Projects** (vincular tarefas a projetos — ainda "Em breve"; definir com o usuário)
+  4. **Projetos / Projects** (lista de projetos e página de cada projeto; não aparecem no menu lateral)
   5. **Validation**
   6. **Recorrentes / Recurring**
   7. **Configurações / Settings** (tema, idioma, notificações, áreas)
@@ -92,5 +92,11 @@ Nomes em português no app: Hoje (Doing), Tarefas, Planejamento, Projetos, Valid
 4. Recorrentes. ✅ feito
 5. PWA instalável + notificações push. ✅ feito
 6. Backup e ping via GitHub Actions.
-7. Projetos (vincular tarefas a projetos) — a definir com o usuário.
+7. Projetos. ✅ feito (migração 0007). Detalhes:
+   - Projeto: nome, cor, descrição, prazo, status ativo/pausado/concluído. Excluir projeto deixa as tarefas sem projeto.
+   - Tarefa tem no máximo um projeto (`tasks.project_id`), independente da área. Criar tarefa já no projeto ou "Vincular tarefas" existentes.
+   - "Depende de" (`task_deps`): só tarefas do mesmo projeto, sem ciclo (validado por trigger no banco). Trocar a tarefa de projeto apaga as dependências dela.
+   - Bloqueada = alguma dependência não está Concluída/Validada → cadeado em todas as telas (inclusive Hoje; continua lá, o usuário decide tirar).
+   - Ao passar uma tarefa bloqueada para Em andamento/Concluída/Validada aparece o aviso com as pendências (BlockGuard); "Fazer mesmo assim" segue e o projeto mostra alerta. O alerta é calculado (não há tabela): some sozinho quando as pendências são concluídas. Contagem de alertas no item Projetos do menu.
+   - Página do projeto: Disponíveis (sem pendências, ou já iniciadas fora de ordem), Todas (por etapa) e Fluxograma (linhas por etapa, setas SVG).
 8. Sincronização com Google Tasks (combinada para depois de Projetos): lista diária "Alania · Hoje" criada no Google Tasks; concluir no app marca no Google na hora; concluir no Google reflete no app em até 5 min (polling no tick do pg_cron, Tasks API não tem webhook). Exige OAuth do Google Cloud só para acessar o Tasks (o login do app continua e-mail/senha), app publicado "em produção" para o token não expirar em 7 dias; refresh token guardado em app_secrets/tabela fechada. Só título, data, notas e concluída vão para o Google (prioridade opcional como emoji no título).

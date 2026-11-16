@@ -1,3 +1,4 @@
+import { isOutOfOrder } from '../lib/projects'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Sun, ListTodo, FolderKanban, CalendarRange, ShieldCheck, Repeat, Settings, LogOut, PanelLeftClose, PanelLeftOpen, Menu, Plus, X } from 'lucide-react'
@@ -21,7 +22,7 @@ export function Logo({ size = 32 }: { size?: number }) {
 
 export function Layout({ children }: { children: ReactNode }) {
   const { t } = useSettings()
-  const { tasks, areas } = useData()
+  const { tasks, areas, depIndex, taskById } = useData()
   const { openNew } = useEditor()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(() => {
@@ -116,13 +117,14 @@ export function Layout({ children }: { children: ReactNode }) {
   }, [openNew])
 
   const doingCount = tasks.filter((x) => isInDoing(x)).length
+  const alertCount = tasks.filter((x) => x.project_id && isOutOfOrder(x, depIndex, taskById)).length
   const validationCount = tasks.filter((x) => x.validation_of && isOpen(x) && !x.date).length
 
   const items = [
     { to: '/', label: t.nav_doing, icon: Sun, badge: doingCount },
     { to: '/tasks', label: t.nav_tasks, icon: ListTodo },
     { to: '/planning', label: t.nav_planning, icon: CalendarRange },
-    { to: '/projects', label: t.nav_projects, icon: FolderKanban },
+    { to: '/projects', label: t.nav_projects, icon: FolderKanban, badge: alertCount },
     { to: '/validation', label: t.nav_validation, icon: ShieldCheck, badge: validationCount },
     { to: '/recurring', label: t.nav_recurring, icon: Repeat },
   ]

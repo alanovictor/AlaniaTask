@@ -6,7 +6,8 @@ import { addDays, isOpen, isOverdue, today } from '../lib/dates'
 import { useSettings } from '../lib/settings'
 import { PRIORITIES, PRIORITY_RANK, STATUSES, type Priority, type Status, type Task } from '../lib/types'
 import { PageHeader } from '../components/Layout'
-import { DateLabel, DoingToggle, DoneCheck, OverdueBadge, RecurringBadge, TaskCard, ValidationBadge } from '../components/TaskCard'
+import { DateLabel, DepBadge, DoingToggle, DoneCheck, OverdueBadge, ProjectChip, RecurringBadge, TaskCard, ValidationBadge } from '../components/TaskCard'
+import { useBlockGuard } from '../components/BlockGuard'
 import { useEditor } from '../components/TaskEditor'
 import { AreaChip, EmptyState, PriorityFlag, StatusSelect } from '../components/ui'
 
@@ -36,7 +37,8 @@ function load(): Filters {
 
 export function Tasks() {
   const { t } = useSettings()
-  const { tasks, areas, areaById, tagById, patchTask } = useData()
+  const { tasks, areas, areaById, tagById } = useData()
+  const { setStatus } = useBlockGuard()
   const { openEdit } = useEditor()
   const [params, setParams] = useSearchParams()
   const [base, setF] = useState<Filters>(load)
@@ -214,9 +216,11 @@ export function Tasks() {
                       </td>
                       <td className="py-3 pr-4">
                         <div className={`font-medium ${closed ? 'text-muted line-through' : ''}`}>{x.title}</div>
-                        {(x.subtasks.length > 0 || x.task_tags.length > 0 || isOverdue(x) || x.validation_of || x.requires_validation || x.recurrence_id) && (
+                        {(x.subtasks.length > 0 || x.task_tags.length > 0 || isOverdue(x) || x.validation_of || x.requires_validation || x.recurrence_id || x.project_id) && (
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
+                            <DepBadge task={x} />
                             <OverdueBadge task={x} />
+                            <ProjectChip task={x} />
                             <ValidationBadge task={x} />
                             <RecurringBadge task={x} />
                             {x.subtasks.length > 0 && (
@@ -236,7 +240,7 @@ export function Tasks() {
                         <PriorityFlag p={x.priority} withLabel />
                       </td>
                       <td className="py-3 pr-4">
-                        <StatusSelect value={x.status} onChange={(status) => patchTask(x.id, { status }).catch(() => {})} />
+                        <StatusSelect value={x.status} onChange={(status) => setStatus(x, status)} />
                       </td>
                       <td className="py-3 pr-4">{x.date ? <DateLabel task={x} /> : <span className="text-xs text-muted">{t.no_date}</span>}</td>
                       <td className="py-3 pr-3 text-right">

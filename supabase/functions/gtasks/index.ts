@@ -24,8 +24,8 @@ function serviceKey(): string {
 }
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, serviceKey(), { auth: { persistSession: false } })
-const CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID') ?? ''
-const CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET') ?? ''
+const CLIENT_ID = (Deno.env.get('GOOGLE_CLIENT_ID') ?? '').trim()
+const CLIENT_SECRET = (Deno.env.get('GOOGLE_CLIENT_SECRET') ?? '').trim()
 const REDIRECT_URI = 'https://alanovictor.github.io/AlaniaTask/google.html'
 const SCOPE = 'https://www.googleapis.com/auth/tasks'
 const API = 'https://tasks.googleapis.com/tasks/v1'
@@ -297,14 +297,21 @@ Deno.serve(async (req) => {
     if (action === 'exchange') {
       const { data: st } = await db.from('google_oauth_states').select('user_id, created_at').eq('state', body.state ?? '').maybeSingle()
       await db.from('google_oauth_states').delete().eq('state', body.state ?? '')
-      if (!st || st.user_id !== userId || Date.now() - Date.parse(st.created_at) > 15 * 60_000) return json({ error: 'state' }, 400)
+      if (!st || st.user_id !== userId || Date.now() - Date.parse(st.created_at) > 15 * 60_000) {
+        console.error('exchange: state inválido', { found: !!st, sameUser: st?.user_id === userId })
+        return json({ error: 'state' }, 400)
+      }
       const res = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({ code: body.code ?? '', client_id: CLIENT_ID, client_secret: CLIENT_SECRET, redirect_uri: REDIRECT_URI, grant_type: 'authorization_code' }),
       })
       const tok = await res.json()
-      if (!res.ok || !tok.refresh_token) return json({ error: 'exchange', detail: tok.error ?? 'no refresh token' }, 400)
+      if (!res.ok || !tok.refresh_token) {
+        // só o código de erro do Google (nunca tokens)
+        console.error('exchange: google recusou', res.status, tok.error ?? 'no refresh token', tok.error_description ?? '')
+        return json({ error: 'exchange', detail: tok.error ?? 'no refresh token' }, 400)
+      }
       // reconectar começa do zero (as tarefas antigas no Google não são mais acompanhadas)
       await db.from('gtask_map').delete().eq('user_id', userId)
       await db.from('google_links').upsert({ user_id: userId, refresh_token: tok.refresh_token, list_id: '@default', connected_at: new Date().toISOString(), last_error: null, last_sync_at: null, sync_lock: null })

@@ -103,7 +103,7 @@ Nomes em português no app: Hoje (Doing), Tarefas, Planejamento, Projetos, Valid
    - Bloqueada = alguma dependência não está Concluída/Validada → cadeado em todas as telas (inclusive Hoje; continua lá, o usuário decide tirar).
    - Ao passar uma tarefa bloqueada para Em andamento/Concluída/Validada aparece o aviso com as pendências (BlockGuard); "Fazer mesmo assim" segue e o projeto mostra alerta. O alerta é calculado (não há tabela): some sozinho quando as pendências são concluídas. Contagem de alertas no item Projetos do menu.
    - Página do projeto: Disponíveis (sem pendências, ou já iniciadas fora de ordem), Todas (por etapa) e Fluxograma (linhas por etapa, setas SVG).
-8. Sincronização com Google Tasks. ✅ código pronto (migração 0008, função `gtasks`, cartão em Configurações). Regras combinadas:
+8. Sincronização com Google Tasks. ✅ feito e testado pelo usuário (migração 0008, função `gtasks`, cartão em Configurações). Regras combinadas:
    - Lista padrão "Minhas tarefas" (`@default`). A cada 5 min (pg_cron `alania-gtasks`) e no botão "Sincronizar agora".
    - Tarefas do Hoje (abertas, data ≤ hoje) são criadas no Google: título (com "HH:MM · " só se tiver horário), descrição nas notas, data.
    - Concluir no app → conclui no Google; concluir no Google → conclui no app (só as criadas pelo app). Desmarcar/reabrir também espelha.

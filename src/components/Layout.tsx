@@ -1,7 +1,7 @@
 import { isOutOfOrder } from '../lib/projects'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Sun, ListTodo, Columns3, FolderKanban, CalendarRange, ShieldCheck, Repeat, Settings, LogOut, PanelLeftClose, PanelLeftOpen, Menu, Plus, X } from 'lucide-react'
+import { Sun, ListTodo, Columns3, PauseCircle, FolderKanban, CalendarRange, ShieldCheck, Repeat, Settings, LogOut, PanelLeftClose, PanelLeftOpen, Menu, Plus, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useSettings } from '../lib/settings'
 import { useData } from '../lib/data'
@@ -22,7 +22,7 @@ export function Logo({ size = 32 }: { size?: number }) {
 
 export function Layout({ children }: { children: ReactNode }) {
   const { t } = useSettings()
-  const { tasks, areas, depIndex, taskById } = useData()
+  const { tasks, areas, depIndex, taskById, standbyTasks } = useData()
   const { openNew } = useEditor()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(() => {
@@ -127,6 +127,7 @@ export function Layout({ children }: { children: ReactNode }) {
     { to: '/planning', label: t.nav_planning, icon: CalendarRange },
     { to: '/projects', label: t.nav_projects, icon: FolderKanban, badge: alertCount },
     { to: '/validation', label: t.nav_validation, icon: ShieldCheck, badge: validationCount },
+    { to: '/standby', label: t.standby, icon: PauseCircle, badge: standbyTasks.filter((x) => isOpen(x)).length },
     { to: '/recurring', label: t.nav_recurring, icon: Repeat },
   ]
 

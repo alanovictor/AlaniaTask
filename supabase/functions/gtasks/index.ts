@@ -55,6 +55,7 @@ interface AppTask {
   status: string
   date: string | null
   time: string | null
+  standby: boolean
 }
 
 interface MapRow {
@@ -124,8 +125,8 @@ async function syncUser(userId: string): Promise<{ created: number; completedHer
     const mapRows = (maps ?? []) as MapRow[]
     const mapped = new Map(mapRows.map((m) => [m.task_id, m]))
 
-    const cols = 'id, user_id, title, description, status, date, time'
-    const { data: doing } = await db.from('tasks').select(cols).eq('user_id', userId).not('status', 'in', '(done,validated)').lte('date', today)
+    const cols = 'id, user_id, title, description, status, date, time, standby'
+    const { data: doing } = await db.from('tasks').select(cols).eq('user_id', userId).eq('standby', false).not('status', 'in', '(done,validated)').lte('date', today)
     const ids = mapRows.map((m) => m.task_id)
     const { data: mappedTasks } = ids.length ? await db.from('tasks').select(cols).in('id', ids) : { data: [] }
     const byId = new Map<string, AppTask>()
@@ -180,7 +181,8 @@ async function syncUser(userId: string): Promise<{ created: number; completedHer
         await saveMap({ task_id: m.task_id, synced_status: 'open' })
       }
 
-      const inDoing = !appDone && !!t.date && t.date <= today
+      // em stand by sai do Hoje (e do Google)
+      const inDoing = !appDone && !t.standby && !!t.date && t.date <= today
 
       // saiu do Hoje no app → apaga do Google
       if (!appDone && !inDoing) {

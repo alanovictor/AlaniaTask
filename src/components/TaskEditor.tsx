@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
-import { Plus, Trash2, X, Check, Lock } from 'lucide-react'
+import { Plus, Trash2, X, Check, Lock, PauseCircle } from 'lucide-react'
 import { descendants } from '../lib/projects'
 import { useBlockGuard } from './BlockGuard'
 import { draftFromTask, emptyDraft, useData, type TaskDraft } from '../lib/data'
@@ -55,7 +55,7 @@ export function useEditor(): EditorCtx {
 
 function TaskEditorModal({ initial, onClose }: { initial: TaskDraft; onClose: () => void }) {
   const { t } = useSettings()
-  const { areas, tags, tasks, projects, taskById, depIndex, saveTask, deleteTask } = useData()
+  const { areas, tags, allTasks: tasks, projects, taskById, depIndex, saveTask, deleteTask } = useData()
   const { confirmStart } = useBlockGuard()
   const [d, setD] = useState<TaskDraft>(initial)
   const [newSub, setNewSub] = useState('')
@@ -335,6 +335,17 @@ function TaskEditorModal({ initial, onClose }: { initial: TaskDraft; onClose: ()
             <div className="text-xs text-muted">{t.requires_validation_hint}</div>
           </div>
           <Toggle checked={d.requires_validation} onChange={(v) => set('requires_validation', v)} label={t.requires_validation} />
+        </div>
+
+        <div className={`flex items-start justify-between gap-4 rounded-2xl p-3.5 ${d.standby ? 'bg-[#b38cff]/15' : 'bg-surface-2'}`}>
+          <div>
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <PauseCircle size={15} className="text-[#b38cff]" />
+              {t.standby}
+            </div>
+            <div className="text-xs text-muted">{t.standby_hint}</div>
+          </div>
+          <Toggle checked={d.standby} onChange={(v) => set('standby', v)} label={t.standby} />
         </div>
 
         {err && <p className="text-sm text-danger">{err}</p>}

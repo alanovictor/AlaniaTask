@@ -84,6 +84,12 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 - Filtros por projeto (todos / sem projeto / um projeto) e por área, salvos no aparelho. Concluídas/validadas: só dos últimos 14 dias, com botão para mostrar as antigas.
 - Arrastar muda o status (passa pelo aviso de dependências). Arraste próprio com pointer events: mouse arrasta direto; no toque, segurar ~350 ms e arrastar; perto da borda o quadro rola sozinho. "+" na coluna cria tarefa já com aquele status (e projeto/área do filtro).
 
+## Stand by
+- Não é status: flag `tasks.standby` (+ `standby_at`), migração 0009. A tarefa mantém o status que tinha.
+- Liga/desliga no editor da tarefa (toggle "Stand by") ou pelo botão "Tirar do stand by" na seção Stand by (menu, depois de Validação).
+- Em stand by: fora de Hoje, Tarefas, Kanban, Planejamento, Validação, notificações (função notify) e Google Tasks (função gtasks apaga do Google). No DataProvider: `tasks` = sem stand by; `allTasks` = todas; `standbyTasks`.
+- Projetos usam `allTasks` (contam no progresso e nas dependências, com selo "Stand by"), mas não aparecem em "Disponíveis".
+
 ## Rotinas (GitHub Actions)
 - Backup semanal dos dados.
 - Ping periódico para o projeto gratuito do Supabase não pausar (pausa após 7 dias sem uso).

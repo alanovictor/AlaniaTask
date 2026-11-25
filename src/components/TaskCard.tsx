@@ -1,4 +1,4 @@
-import { Check, CalendarDays, Clock, ListChecks, Sun, SunDim, AlertTriangle, ShieldCheck, Repeat, Bell, Lock, FolderKanban } from 'lucide-react'
+import { PauseCircle, Check, CalendarDays, Clock, ListChecks, Sun, SunDim, AlertTriangle, ShieldCheck, Repeat, Bell, Lock, FolderKanban } from 'lucide-react'
 import { isOutOfOrder, openBlockers } from '../lib/projects'
 import { useBlockGuard } from './BlockGuard'
 import { useData } from '../lib/data'
@@ -110,6 +110,17 @@ export function DepBadge({ task }: { task: Task }) {
   )
 }
 
+export function StandbyBadge({ task }: { task: Task }) {
+  const { t } = useSettings()
+  if (!task.standby) return null
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-[#b38cff]/15 px-2 py-0.5 text-xs font-semibold text-[#b38cff]">
+      <PauseCircle size={12} />
+      {t.standby}
+    </span>
+  )
+}
+
 export function ProjectChip({ task }: { task: Task }) {
   const { projectById } = useData()
   const p = task.project_id ? projectById.get(task.project_id) : undefined
@@ -168,6 +179,7 @@ export function TaskCard({ task, showDoingToggle = false, hideProject = false }:
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <StatusSelect value={task.status} onChange={(status) => setStatus(task, status)} />
+          <StandbyBadge task={task} />
           <DepBadge task={task} />
           <OverdueBadge task={task} />
           <ValidationBadge task={task} />

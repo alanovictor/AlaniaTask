@@ -77,6 +77,8 @@ export interface Task {
   time: string | null
   requires_validation: boolean
   reminder_minutes: number | null
+  standby: boolean
+  standby_at: string | null
   validation_of: string | null
   recurrence_id: string | null
   occurrence_date: string | null

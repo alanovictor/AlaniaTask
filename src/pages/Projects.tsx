@@ -21,7 +21,8 @@ function daysUntil(date: string): number {
 
 /** Resumo de um projeto, usado na lista e no cabeçalho. */
 function useProjectStats(projectId: string | undefined) {
-  const { tasks, depIndex, taskById } = useData()
+  // inclui as tarefas em stand by: contam no progresso e nas dependências
+  const { allTasks: tasks, depIndex, taskById } = useData()
   return useMemo(() => {
     const list = tasks.filter((x) => x.project_id === projectId)
     const closed = list.filter(isClosed).length
@@ -319,7 +320,7 @@ export function ProjectDetail() {
   const open = s.list.filter((x) => !isClosed(x))
   const closed = s.list.filter(isClosed).sort((a, b) => (b.completed_at ?? '').localeCompare(a.completed_at ?? ''))
   // disponível = sem pendências, ou já iniciada mesmo assim (aparece com o alerta)
-  const available = open.filter((x) => openBlockers(x.id, depIndex, taskById).length === 0 || isOutOfOrder(x, depIndex, taskById)).sort(byPriority)
+  const available = open.filter((x) => !x.standby).filter((x) => openBlockers(x.id, depIndex, taskById).length === 0 || isOutOfOrder(x, depIndex, taskById)).sort(byPriority)
   const hiddenCount = open.length - available.length
   const lv = levels(open.map((x) => x.id), depIndex)
   const openByStep = [...open].sort((a, b) => (lv.get(a.id) ?? 0) - (lv.get(b.id) ?? 0) || byPriority(a, b))
@@ -464,7 +465,7 @@ export function ProjectDetail() {
 
 function LinkTasksModal({ projectId, onClose }: { projectId: string; onClose: () => void }) {
   const { t } = useSettings()
-  const { tasks, areaById, linkTasks } = useData()
+  const { allTasks: tasks, areaById, linkTasks } = useData()
   const [q, setQ] = useState('')
   const [picked, setPicked] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)

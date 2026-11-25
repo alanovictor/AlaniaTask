@@ -13,6 +13,7 @@ import { Tasks } from './pages/Tasks'
 import { Settings } from './pages/Settings'
 import { Projects, ProjectDetail } from './pages/Projects'
 import { Kanban } from './pages/Kanban'
+import { Standby } from './pages/Standby'
 import { Planning } from './pages/Planning'
 import { Validation } from './pages/Validation'
 import { Recurring } from './pages/Recurring'
@@ -89,6 +90,7 @@ function Shell({ email, userId }: { email: string; userId: string }) {
         <Route path="/kanban" element={<Kanban />} />
         <Route path="/planning" element={<Planning />} />
         <Route path="/validation" element={<Validation />} />
+        <Route path="/standby" element={<Standby />} />
         <Route path="/recurring" element={<Recurring />} />
         <Route path="/settings" element={<Settings email={email} userId={userId} />} />
         <Route path="*" element={<Navigate to="/" replace />} />

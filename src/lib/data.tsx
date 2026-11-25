@@ -26,6 +26,7 @@ export interface TaskDraft {
   time: string | null
   requires_validation: boolean
   reminder_minutes: number | null
+  standby: boolean
   subtasks: SubtaskDraft[]
   tagNames: string[]
 }
@@ -35,7 +36,11 @@ interface DataCtx {
   error: string | null
   areas: Area[]
   tags: Tag[]
+  /** tarefas fora do stand by (o que aparece nas telas normais) */
   tasks: Task[]
+  /** todas, inclusive em stand by (projetos e dependências) */
+  allTasks: Task[]
+  standbyTasks: Task[]
   recurrences: Recurrence[]
   projects: Project[]
   deps: TaskDep[]
@@ -46,7 +51,7 @@ interface DataCtx {
   tagById: Map<string, Tag>
   reload: () => Promise<void>
   saveTask: (d: TaskDraft) => Promise<void>
-  patchTask: (id: string, patch: Partial<Pick<Task, 'status' | 'date' | 'time' | 'priority' | 'area_id'>>) => Promise<void>
+  patchTask: (id: string, patch: Partial<Pick<Task, 'status' | 'date' | 'time' | 'priority' | 'area_id' | 'standby' | 'standby_at'>>) => Promise<void>
   toggleSubtask: (s: Subtask) => Promise<void>
   deleteTask: (id: string) => Promise<void>
   addArea: (name: string, color: string) => Promise<void>
@@ -150,6 +155,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         requires_validation: d.requires_validation,
         // o aviso precisa de data e horário
         reminder_minutes: d.date && d.time ? d.reminder_minutes : null,
+        standby: d.standby,
+        // guarda quando entrou no stand by (mantém a data se já estava)
+        standby_at: d.standby ? (tasks.find((t) => t.id === d.id)?.standby_at ?? new Date().toISOString()) : null,
       }
       let taskId = d.id
       if (taskId) {
@@ -370,7 +378,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       error,
       areas,
       tags,
-      tasks,
+      tasks: tasks.filter((x) => !x.standby),
+      allTasks: tasks,
+      standbyTasks: tasks.filter((x) => x.standby),
       recurrences,
       projects,
       deps,
@@ -419,6 +429,7 @@ export function emptyDraft(partial: Partial<TaskDraft> = {}): TaskDraft {
     time: null,
     requires_validation: false,
     reminder_minutes: null,
+    standby: false,
     subtasks: [],
     tagNames: [],
     ...partial,
@@ -439,6 +450,7 @@ export function draftFromTask(t: Task, tagById: Map<string, Tag>, dependsOn: str
     time: t.time ? t.time.slice(0, 5) : null,
     requires_validation: t.requires_validation,
     reminder_minutes: t.reminder_minutes,
+    standby: t.standby,
     subtasks: t.subtasks.map((s) => ({ id: s.id, title: s.title, done: s.done })),
     tagNames: t.task_tags.map((x) => tagById.get(x.tag_id)?.name).filter((n): n is string => !!n),
   }

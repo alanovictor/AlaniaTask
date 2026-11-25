@@ -303,6 +303,14 @@ const pt = {
   all_projects: 'Todos os projetos',
   kanban_all_closed: (n: number): string => (n === 1 ? 'Mostrar 1 concluída antiga' : `Mostrar ${n} concluídas antigas`),
   kanban_recent_closed: 'Só concluídas dos últimos 14 dias',
+  // stand by
+  standby: 'Stand by',
+  standby_hint: 'Guarda a tarefa fora de Hoje, Kanban, Planejamento e avisos até você tirar do stand by.',
+  standby_subtitle: 'Tarefas guardadas em espera. Ficam fora do dia a dia até você retomar.',
+  standby_empty_title: 'Nada em stand by',
+  standby_empty_text: 'Abra uma tarefa e ligue "Stand by" para guardá-la aqui.',
+  standby_resume: 'Tirar do stand by',
+  standby_since: 'Desde',
   error_generic: 'Algo deu errado. Tente de novo.',
 }
 
@@ -599,6 +607,14 @@ const en: Dict = {
   all_projects: 'All projects',
   kanban_all_closed: (n: number): string => (n === 1 ? 'Show 1 older done task' : `Show ${n} older done tasks`),
   kanban_recent_closed: 'Only done in the last 14 days',
+  // stand by
+  standby: 'Stand by',
+  standby_hint: 'Keeps the task out of Today, Kanban, Planning and alerts until you take it off stand by.',
+  standby_subtitle: 'Tasks put on hold. They stay out of your day until you resume them.',
+  standby_empty_title: 'Nothing on stand by',
+  standby_empty_text: 'Open a task and turn on "Stand by" to keep it here.',
+  standby_resume: 'Take off stand by',
+  standby_since: 'Since',
   error_generic: 'Something went wrong. Try again.',
 }
 

@@ -22,7 +22,7 @@ export function Logo({ size = 32 }: { size?: number }) {
 
 export function Layout({ children }: { children: ReactNode }) {
   const { t } = useSettings()
-  const { tasks, areas, depIndex, taskById, standbyTasks } = useData()
+  const { tasks, areas, depIndex, taskById } = useData()
   const { openNew } = useEditor()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(() => {
@@ -127,7 +127,7 @@ export function Layout({ children }: { children: ReactNode }) {
     { to: '/planning', label: t.nav_planning, icon: CalendarRange },
     { to: '/projects', label: t.nav_projects, icon: FolderKanban, badge: alertCount },
     { to: '/validation', label: t.nav_validation, icon: ShieldCheck, badge: validationCount },
-    { to: '/standby', label: t.standby, icon: PauseCircle, badge: standbyTasks.filter((x) => isOpen(x)).length },
+    { to: '/standby', label: t.standby, icon: PauseCircle },
     { to: '/recurring', label: t.nav_recurring, icon: Repeat },
   ]
 

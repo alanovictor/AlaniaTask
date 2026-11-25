@@ -101,55 +101,58 @@ input[type="time"] {
   color-scheme: inherit;
 }
 
-.input {
-  font-size: 16px;
-  width: 100%;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 0.75rem;
-  padding: 0.6rem 0.8rem;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
+/* dentro de components: as classes utilitárias (pl-10, p-2…) podem sobrescrever o padding */
+@layer components {
+  .input {
+    font-size: 16px;
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.8rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.75rem;
-  padding: 0.6rem 1rem;
-  font-weight: 600;
-  transition: background 0.15s, color 0.15s, opacity 0.15s;
-  cursor: pointer;
-}
-.btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.btn-primary {
-  background: var(--accent);
-  color: var(--on-accent);
-}
-.btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-.btn-ghost {
-  color: var(--muted);
-}
-.btn-ghost:hover:not(:disabled) {
-  background: var(--surface-2);
-  color: var(--fg);
-}
-.btn-outline {
-  border: 1px solid var(--line);
-}
-.btn-outline:hover:not(:disabled) {
-  background: var(--surface-2);
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    transition: background 0.15s, color 0.15s, opacity 0.15s;
+    cursor: pointer;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+  .btn-ghost {
+    color: var(--muted);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--fg);
+  }
+  .btn-outline {
+    border: 1px solid var(--line);
+  }
+  .btn-outline:hover:not(:disabled) {
+    background: var(--surface-2);
+  }
 }
 
 .scrollbar-thin {

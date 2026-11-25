@@ -5,6 +5,7 @@ const pt = {
   // navegação
   nav_doing: 'Hoje',
   nav_tasks: 'Tarefas',
+  nav_kanban: 'Kanban',
   nav_planning: 'Planejamento',
   nav_projects: 'Projetos',
   nav_validation: 'Validação',
@@ -295,6 +296,13 @@ const pt = {
   gt_error: 'A última sincronização falhou. Tente de novo.',
   gt_connect_failed: 'Não foi possível conectar ao Google. Tente de novo.',
   gt_connected_ok: 'Google Tasks conectado.',
+  // kanban
+  kanban_subtitle: 'Suas tarefas em quadros por status. Arraste para mudar.',
+  kanban_hint: 'Arraste um cartão para outra coluna para mudar o status. No celular, segure o cartão um instante e arraste.',
+  kanban_empty: 'Nenhuma tarefa',
+  all_projects: 'Todos os projetos',
+  kanban_all_closed: (n: number): string => (n === 1 ? 'Mostrar 1 concluída antiga' : `Mostrar ${n} concluídas antigas`),
+  kanban_recent_closed: 'Só concluídas dos últimos 14 dias',
   error_generic: 'Algo deu errado. Tente de novo.',
 }
 
@@ -304,6 +312,7 @@ const en: Dict = {
   appName: 'Alania Task',
   nav_doing: 'Doing',
   nav_tasks: 'Tasks',
+  nav_kanban: 'Kanban',
   nav_planning: 'Planning',
   nav_projects: 'Projects',
   nav_validation: 'Validation',
@@ -583,6 +592,13 @@ const en: Dict = {
   gt_error: 'The last sync failed. Try again.',
   gt_connect_failed: 'Could not connect to Google. Try again.',
   gt_connected_ok: 'Google Tasks connected.',
+  // kanban
+  kanban_subtitle: 'Your tasks on boards by status. Drag to change.',
+  kanban_hint: 'Drag a card to another column to change its status. On a phone, hold the card for a moment and drag.',
+  kanban_empty: 'No tasks',
+  all_projects: 'All projects',
+  kanban_all_closed: (n: number): string => (n === 1 ? 'Show 1 older done task' : `Show ${n} older done tasks`),
+  kanban_recent_closed: 'Only done in the last 14 days',
   error_generic: 'Something went wrong. Try again.',
 }
 

@@ -1,7 +1,7 @@
 import { isOutOfOrder } from '../lib/projects'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Sun, ListTodo, FolderKanban, CalendarRange, ShieldCheck, Repeat, Settings, LogOut, PanelLeftClose, PanelLeftOpen, Menu, Plus, X } from 'lucide-react'
+import { Sun, ListTodo, Columns3, FolderKanban, CalendarRange, ShieldCheck, Repeat, Settings, LogOut, PanelLeftClose, PanelLeftOpen, Menu, Plus, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useSettings } from '../lib/settings'
 import { useData } from '../lib/data'
@@ -123,6 +123,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const items = [
     { to: '/', label: t.nav_doing, icon: Sun, badge: doingCount },
     { to: '/tasks', label: t.nav_tasks, icon: ListTodo },
+    { to: '/kanban', label: t.nav_kanban, icon: Columns3 },
     { to: '/planning', label: t.nav_planning, icon: CalendarRange },
     { to: '/projects', label: t.nav_projects, icon: FolderKanban, badge: alertCount },
     { to: '/validation', label: t.nav_validation, icon: ShieldCheck, badge: validationCount },
@@ -271,7 +272,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <span className="font-bold tracking-tight">{t.appName}</span>
         </header>
 
-        <main className={`mx-auto w-full ${location.pathname === '/planning' ? 'max-w-[1600px]' : 'max-w-6xl'} flex-1 px-4 pt-5 pb-28 sm:px-6 lg:px-10 lg:pt-10 lg:pb-12`}>{children}</main>
+        <main className={`mx-auto w-full ${['/planning', '/kanban'].includes(location.pathname) ? 'max-w-[1600px]' : 'max-w-6xl'} flex-1 px-4 pt-5 pb-28 sm:px-6 lg:px-10 lg:pt-10 lg:pb-12`}>{children}</main>
       </div>
 
       {/* Botão flutuante mobile */}

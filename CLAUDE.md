@@ -79,6 +79,11 @@ Vamos construir por etapas e melhorar aos poucos. Não implemente etapas futuras
 - pg_cron `alania-notify` a cada 5 min (migrations 0004 e 0005); `notification_log` evita repetir envios.
 - Service worker: public/push-sw.js importado via workbox.importScripts.
 
+## Kanban
+- Seção Kanban (menu, depois de Tarefas): colunas por status (A fazer, Em andamento, Aguardando, Concluída, Validada).
+- Filtros por projeto (todos / sem projeto / um projeto) e por área, salvos no aparelho. Concluídas/validadas: só dos últimos 14 dias, com botão para mostrar as antigas.
+- Arrastar muda o status (passa pelo aviso de dependências). Arraste próprio com pointer events: mouse arrasta direto; no toque, segurar ~350 ms e arrastar; perto da borda o quadro rola sozinho. "+" na coluna cria tarefa já com aquele status (e projeto/área do filtro).
+
 ## Rotinas (GitHub Actions)
 - Backup semanal dos dados.
 - Ping periódico para o projeto gratuito do Supabase não pausar (pausa após 7 dias sem uso).
